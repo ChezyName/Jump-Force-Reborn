@@ -10,6 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Ability/JFASComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -42,8 +45,9 @@ AJFCharacter::AJFCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 350.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->SetRelativeLocation(FVector(0,0,40));
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -52,6 +56,23 @@ AJFCharacter::AJFCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	AbilitySystemComponent = CreateDefaultSubobject<UJFASComponent>(TEXT("AbilitySystemComp"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
+}
+
+void AJFCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+
+	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
+	SetOwner(NewController);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,11 +96,6 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJFCharacter::Move);
 
@@ -126,4 +142,38 @@ void AJFCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
+void AJFCharacter::InitAbilities()
+{
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
+	}
+	
+	UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities", true,true,FLinearColor::Red,30);
+	
+	for(int i = 0; i < CharacterAbilities.Num(); i++)
+	{
+		UAbilityData* Ability = CharacterAbilities[i];
+		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + Ability->AbilityName, true,true,FLinearColor::Red,30);
+		
+		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Ability->Ability);
+		AbilitySystemComponent->SetInputBinding(Ability->AbilityAction, Handle);
+	}
+	
+	UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities | COMPLETE", true,true,FLinearColor::Red,30);
+}
+
+void AJFCharacter::BeginPlay()
+{
+	//Init all abilities on both Client & Server
+	InitAbilities();
+	
+	Super::BeginPlay();
 }

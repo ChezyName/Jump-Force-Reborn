@@ -3,6 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
+#include "AttributeSet.h"
+#include "AbilitySystemComponent.h"
+#include "Ability/AbilityData.h"
+#include "Ability/JFASComponent.h"
+#include "Attributes/JFAttributeSet.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "JFCharacter.generated.h"
@@ -16,10 +22,13 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AJFCharacter : public ACharacter
+class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-
+public:
+		UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+    	UJFASComponent* AbilitySystemComponent;
+private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -32,10 +41,6 @@ class AJFCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
-
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
@@ -44,21 +49,41 @@ class AJFCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	void PossessedBy(AController* NewController) override;
+
 public:
 	AJFCharacter();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
+	TArray<UAbilityData*> CharacterAbilities;
 	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override
+	{
+		return AbilitySystemComponent;
+	}
+
+	UJFAttributeSet* GetCoreAttributes()
+	{
+		return CoreAttributes;
+	}
+
+	void InitAbilities();
+	
+	virtual void BeginPlay() override;
 
 protected:
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UJFAttributeSet* CoreAttributes;
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
