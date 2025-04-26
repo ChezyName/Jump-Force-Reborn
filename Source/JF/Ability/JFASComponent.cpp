@@ -23,12 +23,12 @@ void UJFASComponent::SetInputBinding(UInputAction* InputAction, FGameplayAbility
 
 	FGameplayAbilitySpec* BindingAbility = FindAbilitySpec(AbilityHandle);
 
-	UKismetSystemLibrary::PrintString(GetWorld(), "	Creating Input Binding", true,true,FLinearColor::Red,30);
+	//UKismetSystemLibrary::PrintString(GetWorld(), "	Creating Input Binding", true,true,FLinearColor::Red,30);
 	
 	FAbilityInputBinding* AbilityInputBinding = MappedAbilities.Find(InputAction);
 	if (AbilityInputBinding)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "	Binding Found -> Adding New Binds", true,true,FLinearColor::Red,30);
+		//UKismetSystemLibrary::PrintString(GetWorld(), "	Binding Found -> Adding New Binds", true,true,FLinearColor::Red,30);
 		FGameplayAbilitySpec* OldBoundAbility = FindAbilitySpec(AbilityInputBinding->BoundAbilitiesStack.Top());
 		if (OldBoundAbility && OldBoundAbility->InputID == AbilityInputBinding->InputID)
 		{
@@ -37,7 +37,7 @@ void UJFASComponent::SetInputBinding(UInputAction* InputAction, FGameplayAbility
 	}
 	else
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "	No Binding Found in Registry", true,true,FLinearColor::Red,30);
+		//UKismetSystemLibrary::PrintString(GetWorld(), "	No Binding Found in Registry", true,true,FLinearColor::Red,30);
 		AbilityInputBinding = &MappedAbilities.Add(InputAction);
 		AbilityInputBinding->InputID = GetNextInputID();
 	}
@@ -165,7 +165,7 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnPressedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Started, this, &UJFASComponent::OnAbilityInputPressed, InputAction).GetHandle();
 
-			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 
 		// Released event
@@ -173,10 +173,10 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnReleasedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Completed, this, &UJFASComponent::OnAbilityInputReleased, InputAction).GetHandle();
 
-			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 	}
-	else UKismetSystemLibrary::PrintString(GetWorld(), "InputComponent is Invalid...", true,true,FLinearColor::Red,30);
+	//else UKismetSystemLibrary::PrintString(GetWorld(), "InputComponent is Invalid...", true,true,FLinearColor::Red,30);
 }
 
 UJFASComponent::UJFASComponent() : Super() {}

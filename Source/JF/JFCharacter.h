@@ -28,6 +28,12 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 public:
 		UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
     	UJFASComponent* AbilitySystemComponent;
+    	
+    	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
+        TArray<UAbilityData*> CharacterAbilities;
+        
+        UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
+        UAbilityData* DashAbility;
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -53,9 +59,6 @@ private:
 
 public:
 	AJFCharacter();
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
-	TArray<UAbilityData*> CharacterAbilities;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override
 	{

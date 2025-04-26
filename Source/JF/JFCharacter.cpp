@@ -60,6 +60,14 @@ AJFCharacter::AJFCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UJFASComponent>(TEXT("AbilitySystemComp"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
+
+	//Load Dash Ability
+	static ConstructorHelpers::FObjectFinder<UAbilityData>
+		DataAssetRef(TEXT("/Script/JF.AbilityData'/Game/Characters/_Core/_Dash/DashAbilityData.DashAbilityData'"));
+	if (DataAssetRef.Succeeded())
+	{
+		DashAbility = DataAssetRef.Object;
+	}
 }
 
 void AJFCharacter::PossessedBy(AController* NewController)
@@ -156,18 +164,33 @@ void AJFCharacter::InitAbilities()
 		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
 	}
 	
-	UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities", true,true,FLinearColor::Red,30);
+	//Init Dash Ability (DEFAULT ABILITY)
+
+	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + DashAbility->AbilityName + " on Key [" +
+			DashAbility->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
+		
+		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(DashAbility->Ability);
+		AbilitySystemComponent->SetInputBinding(DashAbility->AbilityAction, Handle);
+	}
 	
+	//Init All Other Abilities
 	for(int i = 0; i < CharacterAbilities.Num(); i++)
 	{
 		UAbilityData* Ability = CharacterAbilities[i];
-		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + Ability->AbilityName, true,true,FLinearColor::Red,30);
+		if(Ability == nullptr || Ability->Ability == nullptr) continue;
+		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + Ability->AbilityName + " on Key [" +
+			Ability->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
 		
 		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Ability->Ability);
 		AbilitySystemComponent->SetInputBinding(Ability->AbilityAction, Handle);
 	}
 	
-	UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities | COMPLETE", true,true,FLinearColor::Red,30);
+	UKismetSystemLibrary::PrintString(GetWorld(), "==================================================================",
+		true,true,FLinearColor::Green,30);
+	
+	//UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities | COMPLETE", true,true,FLinearColor::Red,30);
 }
 
 void AJFCharacter::BeginPlay()
