@@ -34,6 +34,9 @@ public:
         
         UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
         UAbilityData* DashAbility;
+
+		UFUNCTION(BlueprintPure)
+		FVector2D GetPlayerInputVector() {return PlayerInputVector;}
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -56,6 +59,10 @@ private:
 	UInputAction* LookAction;
 
 	void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+
+	UPROPERTY(Replicated)
+	FVector2D PlayerInputVector;
 
 public:
 	AJFCharacter();
@@ -77,6 +84,9 @@ public:
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	UJFAttributeSet* CoreAttributes;
+
+	UFUNCTION(Server, Unreliable)
+	void UpdatePlayerMovementVector(FVector2D MovementVector);
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);

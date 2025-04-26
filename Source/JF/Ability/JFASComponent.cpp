@@ -106,6 +106,8 @@ void UJFASComponent::OnAbilityInputPressed(UInputAction* InputAction)
 {
 	using namespace EnhancedInputAbilitySystem_Impl;
 
+	UKismetSystemLibrary::PrintString(GetWorld(), "Pressed Ability Key");
+
 	FAbilityInputBinding* FoundBinding = MappedAbilities.Find(InputAction);
 	if (FoundBinding && ensure(FoundBinding->InputID != InvalidInputID))
 	{
@@ -116,6 +118,8 @@ void UJFASComponent::OnAbilityInputPressed(UInputAction* InputAction)
 void UJFASComponent::OnAbilityInputReleased(UInputAction* InputAction)
 {
 	using namespace EnhancedInputAbilitySystem_Impl;
+
+	UKismetSystemLibrary::PrintString(GetWorld(), "Released Ability Key");
 
 	FAbilityInputBinding* FoundBinding = MappedAbilities.Find(InputAction);
 	if (FoundBinding && ensure(FoundBinding->InputID != InvalidInputID))
@@ -165,7 +169,7 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnPressedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Started, this, &UJFASComponent::OnAbilityInputPressed, InputAction).GetHandle();
 
-			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 
 		// Released event
@@ -173,13 +177,17 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnReleasedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Completed, this, &UJFASComponent::OnAbilityInputReleased, InputAction).GetHandle();
 
-			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 	}
 	//else UKismetSystemLibrary::PrintString(GetWorld(), "InputComponent is Invalid...", true,true,FLinearColor::Red,30);
 }
 
-UJFASComponent::UJFASComponent() : Super() {}
+UJFASComponent::UJFASComponent() : Super()
+{
+	SetIsReplicated(true);
+	SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+}
 
 void UJFASComponent::BeginPlay() {
 	Super::BeginPlay();

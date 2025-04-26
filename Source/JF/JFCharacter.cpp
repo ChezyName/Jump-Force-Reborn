@@ -83,6 +83,16 @@ void AJFCharacter::PossessedBy(AController* NewController)
 	SetOwner(NewController);
 }
 
+void AJFCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -104,6 +114,13 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
+		//Ability System
+		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System @ SetupPlayerInputComp",
+			true,true,FLinearColor::Green,30);
+		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
+		
+		InitAbilities();
+		
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJFCharacter::Move);
 
@@ -116,10 +133,16 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
+void AJFCharacter::UpdatePlayerMovementVector_Implementation(FVector2D MovementVector)
+{
+	PlayerInputVector = MovementVector;
+}
+
 void AJFCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	UpdatePlayerMovementVector(MovementVector);
 
 	if (Controller != nullptr)
 	{
@@ -161,6 +184,8 @@ void AJFCharacter::InitAbilities()
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System",
+			true,true,FLinearColor::Green,30);
 		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
 	}
 	
@@ -195,8 +220,10 @@ void AJFCharacter::InitAbilities()
 
 void AJFCharacter::BeginPlay()
 {
-	//Init all abilities on both Client & Server
-	InitAbilities();
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 	
 	Super::BeginPlay();
 }
