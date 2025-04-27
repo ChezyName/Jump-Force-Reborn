@@ -19,6 +19,18 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+USTRUCT()
+struct FAbilityInputHandler
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	FGameplayAbilitySpecHandle Handle;
+	UPROPERTY()
+	UInputAction* Action;
+	
+};
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
@@ -77,7 +89,12 @@ public:
 		return CoreAttributes;
 	}
 
-	void InitAbilities();
+	UFUNCTION(Server, Reliable)
+	void InitAbilitiesServer();
+	UFUNCTION(Client, Reliable)
+	void InitAbilitiesClient(const TArray<FAbilityInputHandler>& Abilities);
+	
+	void InitAbilitiesInputSys();
 	
 	virtual void BeginPlay() override;
 

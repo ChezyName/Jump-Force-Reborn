@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilityData.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "JFASComponent.generated.h"
@@ -45,8 +46,16 @@ public:
 
 	UFUNCTION()
 	void SetInputComponent(UEnhancedInputComponent* _InputComponent) {InputComponent = _InputComponent;}
+
+protected:
+	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 	
 private:
+	bool AbilityDataIsValid(UAbilityData* Data)
+	{
+		return Data != nullptr && Data->Ability != nullptr && Data->AbilityAction != nullptr;
+	}
+	
 	void OnAbilityInputPressed(UInputAction* InputAction);
 
 	void OnAbilityInputReleased(UInputAction* InputAction);

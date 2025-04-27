@@ -3,6 +3,7 @@
 
 #include "JFASComponent.h"
 
+#include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -102,6 +103,42 @@ void UJFASComponent::ClearAbilityBindings(UInputAction* InputAction)
 	RemoveEntry(InputAction);
 }
 
+void UJFASComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec)
+{
+	Super::OnGiveAbility(AbilitySpec);
+
+	AJFCharacter* Char = Cast<AJFCharacter>(GetOwnerActor());
+	if(Char)
+	{
+		UAbilityData* AbilityFound = nullptr;
+		if(AbilityDataIsValid(Char->DashAbility))
+		{
+			if(FindAbilitySpecFromClass(Char->DashAbility->Ability) == &AbilitySpec)
+			{
+				AbilityFound = Char->DashAbility;
+			}
+		}
+
+		for (UAbilityData* CharAbility : Char->CharacterAbilities)
+		{
+			if(AbilityFound != nullptr) break;
+
+			if(AbilityDataIsValid(CharAbility))
+			{
+				if(FindAbilitySpecFromClass(CharAbility->Ability) == &AbilitySpec)
+				{
+					AbilityFound = CharAbility;
+				}
+			}
+		}
+
+		if(AbilityFound != nullptr && AbilityFound->AbilityAction != nullptr && AbilityFound->Ability != nullptr)
+		{
+			SetInputBinding(AbilityFound->AbilityAction, AbilitySpec.Handle);
+		}
+	}
+}
+
 void UJFASComponent::OnAbilityInputPressed(UInputAction* InputAction)
 {
 	using namespace EnhancedInputAbilitySystem_Impl;
@@ -124,6 +161,7 @@ void UJFASComponent::OnAbilityInputReleased(UInputAction* InputAction)
 	FAbilityInputBinding* FoundBinding = MappedAbilities.Find(InputAction);
 	if (FoundBinding && ensure(FoundBinding->InputID != InvalidInputID))
 	{
+				
 		AbilityLocalInputReleased(FoundBinding->InputID);
 	}
 }

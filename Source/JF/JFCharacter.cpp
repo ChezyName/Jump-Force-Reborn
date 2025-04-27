@@ -119,7 +119,7 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			true,true,FLinearColor::Green,30);
 		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
 		
-		InitAbilities();
+		InitAbilitiesInputSys();
 		
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJFCharacter::Move);
@@ -180,24 +180,59 @@ void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
+/*
 void AJFCharacter::InitAbilities()
 {
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+	const int ABILITY_LVL = 1;
+	//Grant Abilities to This Actor
+	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System",
-			true,true,FLinearColor::Green,30);
-		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
+		const FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(DashAbility->Ability, ABILITY_LVL,
+			static_cast<uint8>(DashAbility->AbilityKey));
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
+	}
+
+	for(int i = 0; i < CharacterAbilities.Num(); i++)
+	{
+		UAbilityData* Ability = CharacterAbilities[i];
+		if(Ability == nullptr || Ability->Ability == nullptr) continue;
+		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + Ability->AbilityName + " on Key [" +
+			Ability->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
+		
+		const FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability->Ability, ABILITY_LVL,
+			static_cast<uint8>(Ability->AbilityKey));
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
+	}
+}
+*/
+
+void AJFCharacter::InitAbilitiesServer_Implementation()
+{
+	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
+	{
+		AbilitySystemComponent->GiveAbility(DashAbility->Ability);
+	}
+	for(int i = 0; i < CharacterAbilities.Num(); i++)
+	{
+		UAbilityData* Ability = CharacterAbilities[i];
+		if(Ability == nullptr || Ability->Ability == nullptr) continue;
+		AbilitySystemComponent->GiveAbility(Ability->Ability);
 	}
 	
-	//Init Dash Ability (DEFAULT ABILITY)
-
+	/*
+	TArray<FAbilityInputHandler> Abilities;
+	
 	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
 	{
 		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + DashAbility->AbilityName + " on Key [" +
 			DashAbility->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
 		
 		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(DashAbility->Ability);
-		AbilitySystemComponent->SetInputBinding(DashAbility->AbilityAction, Handle);
+		Abilities.Push(FAbilityInputHandler{
+			Handle,
+			DashAbility->AbilityAction
+		});
+		//AbilitySystemComponent->SetInputBinding(DashAbility->AbilityAction, Handle);
 	}
 	
 	//Init All Other Abilities
@@ -209,13 +244,39 @@ void AJFCharacter::InitAbilities()
 			Ability->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
 		
 		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Ability->Ability);
-		AbilitySystemComponent->SetInputBinding(Ability->AbilityAction, Handle);
+		//AbilitySystemComponent->SetInputBinding(Ability->AbilityAction, Handle);
+		Abilities.Push(FAbilityInputHandler{
+			Handle,
+			Ability->AbilityAction
+		});
 	}
+
+	InitAbilitiesClient(Abilities);
+	*/
+}
+
+void AJFCharacter::InitAbilitiesClient_Implementation(const TArray<FAbilityInputHandler>& Abilities)
+{
+	for(FAbilityInputHandler Ability : Abilities)
+	{
+		AbilitySystemComponent->SetInputBinding(Ability.Action, Ability.Handle);
+	}
+}
+
+void AJFCharacter::InitAbilitiesInputSys()
+{
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System",
+			true,true,FLinearColor::Green,30);
+		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
+	}
+	
+	//Init
+	InitAbilitiesServer();
 	
 	UKismetSystemLibrary::PrintString(GetWorld(), "==================================================================",
 		true,true,FLinearColor::Green,30);
-	
-	//UKismetSystemLibrary::PrintString(GetWorld(), "Initing Abilities | COMPLETE", true,true,FLinearColor::Red,30);
 }
 
 void AJFCharacter::BeginPlay()
@@ -224,6 +285,8 @@ void AJFCharacter::BeginPlay()
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
+
+	//InitAbilities();
 	
 	Super::BeginPlay();
 }
