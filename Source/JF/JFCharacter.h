@@ -49,6 +49,15 @@ public:
 
 		UFUNCTION(BlueprintPure)
 		FVector2D GetPlayerInputVector() {return PlayerInputVector;}
+
+		UFUNCTION(BlueprintPure)
+		FVector GetMovementVector();
+		
+		UFUNCTION(BlueprintPure)
+		FVector GetCameraRightVector();
+
+		UFUNCTION(BlueprintPure)
+		FVector GetCameraForwardVector();
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

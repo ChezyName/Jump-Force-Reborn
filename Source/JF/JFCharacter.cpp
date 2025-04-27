@@ -31,7 +31,7 @@ AJFCharacter::AJFCharacter()
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 99999.f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
@@ -39,8 +39,9 @@ AJFCharacter::AJFCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 99999.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+	GetCharacterMovement()->MaxAcceleration = 99999.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -138,6 +139,56 @@ void AJFCharacter::UpdatePlayerMovementVector_Implementation(FVector2D MovementV
 	PlayerInputVector = MovementVector;
 }
 
+FVector AJFCharacter::GetMovementVector()
+{
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		return (ForwardDirection * PlayerInputVector.Y) + (RightDirection * PlayerInputVector.X);
+	}
+
+	return FVector::ZeroVector;
+}
+
+FVector AJFCharacter::GetCameraRightVector()
+{
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		
+		// get right vector 
+		return FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	}
+
+	return FVector::ZeroVector;
+}
+
+FVector AJFCharacter::GetCameraForwardVector()
+{
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		return FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	}
+
+	return FVector::ZeroVector;
+}
+
 void AJFCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -178,6 +229,7 @@ void AJFCharacter::Look(const FInputActionValue& Value)
 void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AJFCharacter, PlayerInputVector);
 }
 
 /*
