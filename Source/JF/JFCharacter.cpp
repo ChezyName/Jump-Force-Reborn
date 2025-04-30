@@ -13,6 +13,8 @@
 #include "Ability/JFASComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -68,6 +70,48 @@ AJFCharacter::AJFCharacter()
 	if (DataAssetRef.Succeeded())
 	{
 		DashAbility = DataAssetRef.Object;
+	}
+
+	//Default Input Bindings for Auto Creation
+
+	//Input Mapping
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext>
+	InputMapping(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/_CORE/Input/IMC_Default.IMC_Default'"));
+	if (InputMapping.Succeeded())
+	{
+		DefaultMappingContext = InputMapping.Object;
+	}
+
+	//Move Action
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	MoveActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Move.IA_Move'"));
+	if (MoveActionFinder.Succeeded())
+	{
+		MoveAction = MoveActionFinder.Object;
+	}
+
+	//Look Action
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	LookActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Look.IA_Look'"));
+	if (LookActionFinder.Succeeded())
+	{
+		LookAction = LookActionFinder.Object;
+	}
+
+	//Light Attack
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	LightAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_HeavyAttack.IA_HeavyAttack'"));
+	if (LightAttackActionFinder.Succeeded())
+	{
+		LightAttackAction = LightAttackActionFinder.Object;
+	}
+
+	//Heavy Attack
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	HeavyAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_LightAttack.IA_LightAttack'"));
+	if (HeavyAttackActionFinder.Succeeded())
+	{
+		HeavyAttackAction = HeavyAttackActionFinder.Object;
 	}
 }
 
@@ -127,6 +171,14 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJFCharacter::Look);
+
+		//Light Attack
+		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered,
+			this, &AJFCharacter::LightAttack);
+
+		//Heavy Attack
+		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered,
+			this, &AJFCharacter::HeavyAttack);
 	}
 	else
 	{
@@ -341,4 +393,17 @@ void AJFCharacter::BeginPlay()
 	//InitAbilities();
 	
 	Super::BeginPlay();
+}
+
+//====================================================================================
+// Attack Functions
+
+void AJFCharacter::LightAttack_Implementation()
+{
+	//Server Func for Light Attack
+}
+
+void AJFCharacter::HeavyAttack_Implementation()
+{
+	//Server Func for Heavy Attack
 }
