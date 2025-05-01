@@ -36,6 +36,26 @@ protected:
 	{
 		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, MovementSpeed, OldSpeed)
 	}
+	UFUNCTION()
+	void onLightAttackComboChanged(const FGameplayAttributeData& OldAttackCombo)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, LightAttackCombo, OldAttackCombo)
+	}
+	UFUNCTION()
+	void onHeavyAttackComboChanged(const FGameplayAttributeData& OldAttackCombo)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, HeavyAttackCombo, OldAttackCombo)
+	}
+	UFUNCTION()
+	void onLightAttackResetChanged(const FGameplayAttributeData& OldAttackReset)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, LightAttackComboResetTime, OldAttackReset)
+	}
+	UFUNCTION()
+	void onHeavyAttackResetChanged(const FGameplayAttributeData& OldAttackReset)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, HeavyAttackComboResetTime, OldAttackReset)
+	}
 	
 
 public:
@@ -50,6 +70,22 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", Replicated, ReplicatedUsing=onSpeedChanged)
 	FGameplayAttributeData MovementSpeed;
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MovementSpeed);
+
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	FGameplayAttributeData LightAttackCombo;
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackCombo);
+	
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	FGameplayAttributeData LightAttackComboResetTime;
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackComboResetTime);
+
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	FGameplayAttributeData HeavyAttackCombo;
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
+	
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	FGameplayAttributeData HeavyAttackComboResetTime;
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackComboResetTime);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 

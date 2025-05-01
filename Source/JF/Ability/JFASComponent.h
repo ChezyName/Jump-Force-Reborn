@@ -47,6 +47,8 @@ public:
 	UFUNCTION()
 	void SetInputComponent(UEnhancedInputComponent* _InputComponent) {InputComponent = _InputComponent;}
 
+	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
+
 protected:
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 	
@@ -63,8 +65,6 @@ private:
 	void RemoveEntry(UInputAction* InputAction);
 
 	void TryBindAbilityInput(UInputAction* InputAction, FAbilityInputBinding& AbilityInputBinding);
-
-	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
 
 	UPROPERTY(transient)
 	TMap<UInputAction*, FAbilityInputBinding> MappedAbilities;

@@ -312,51 +312,30 @@ void AJFCharacter::InitAbilities()
 
 void AJFCharacter::InitAbilitiesServer_Implementation()
 {
+	//Dash / Dodge Ability
 	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
 	{
 		AbilitySystemComponent->GiveAbility(DashAbility->Ability);
 	}
+
+	//Character Abilities
 	for(int i = 0; i < CharacterAbilities.Num(); i++)
 	{
 		UAbilityData* Ability = CharacterAbilities[i];
 		if(Ability == nullptr || Ability->Ability == nullptr) continue;
 		AbilitySystemComponent->GiveAbility(Ability->Ability);
 	}
-	
-	/*
-	TArray<FAbilityInputHandler> Abilities;
-	
-	if(DashAbility != nullptr && DashAbility->Ability != nullptr)
+
+	//Init Attack Abilities -> Light / Heavy Attacks
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : LightAttacks)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + DashAbility->AbilityName + " on Key [" +
-			DashAbility->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
-		
-		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(DashAbility->Ability);
-		Abilities.Push(FAbilityInputHandler{
-			Handle,
-			DashAbility->AbilityAction
-		});
-		//AbilitySystemComponent->SetInputBinding(DashAbility->AbilityAction, Handle);
-	}
-	
-	//Init All Other Abilities
-	for(int i = 0; i < CharacterAbilities.Num(); i++)
-	{
-		UAbilityData* Ability = CharacterAbilities[i];
-		if(Ability == nullptr || Ability->Ability == nullptr) continue;
-		UKismetSystemLibrary::PrintString(GetWorld(), "Initing Ability: " + Ability->AbilityName + " on Key [" +
-			Ability->AbilityAction->GetName() + "] for " + GetName(), true,true,FLinearColor::Green,30);
-		
-		FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(Ability->Ability);
-		//AbilitySystemComponent->SetInputBinding(Ability->AbilityAction, Handle);
-		Abilities.Push(FAbilityInputHandler{
-			Handle,
-			Ability->AbilityAction
-		});
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1, INDEX_NONE, this));
 	}
 
-	InitAbilitiesClient(Abilities);
-	*/
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : HeavyAttacks)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1, INDEX_NONE, this));
+	}
 }
 
 void AJFCharacter::InitAbilitiesClient_Implementation(const TArray<FAbilityInputHandler>& Abilities)
@@ -371,16 +350,16 @@ void AJFCharacter::InitAbilitiesInputSys()
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System",
-			true,true,FLinearColor::Green,30);
+		//UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System",
+		//	true,true,FLinearColor::Green,30);
 		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
 	}
 	
 	//Init
 	InitAbilitiesServer();
 	
-	UKismetSystemLibrary::PrintString(GetWorld(), "==================================================================",
-		true,true,FLinearColor::Green,30);
+	//UKismetSystemLibrary::PrintString(GetWorld(), "==================================================================",
+	//	true,true,FLinearColor::Green,30);
 }
 
 void AJFCharacter::BeginPlay()
@@ -398,12 +377,24 @@ void AJFCharacter::BeginPlay()
 //====================================================================================
 // Attack Functions
 
-void AJFCharacter::LightAttack_Implementation()
+void AJFCharacter::LightAttack()
 {
+	if(LightAttacks.Num() == 0) return;
+	
 	//Server Func for Light Attack
+	int ComboNumber = ((int) GetCoreAttributes()->GetLightAttackCombo()) %
+		LightAttacks.Num();
+
+	AbilitySystemComponent->TryActivateAbilityByClass(LightAttacks[ComboNumber]);
 }
 
-void AJFCharacter::HeavyAttack_Implementation()
+void AJFCharacter::HeavyAttack()
 {
-	//Server Func for Heavy Attack
+	if(HeavyAttacks.Num() == 0) return;
+	
+	//Server Func for Light Attack
+	int ComboNumber = ((int) GetCoreAttributes()->GetHeavyAttackCombo()) %
+		HeavyAttacks.Num();
+
+	AbilitySystemComponent->TryActivateAbilityByClass(HeavyAttacks[ComboNumber]);
 }

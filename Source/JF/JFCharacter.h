@@ -38,26 +38,32 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
-		UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
-    	UJFASComponent* AbilitySystemComponent;
-    	
-    	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
-        TArray<UAbilityData*> CharacterAbilities;
-        
-        UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Abilities")
-        UAbilityData* DashAbility;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+    UJFASComponent* AbilitySystemComponent;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character | Abilities")
+    TArray<UAbilityData*> CharacterAbilities;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character | Abilities")
+    UAbilityData* DashAbility;
 
-		UFUNCTION(BlueprintPure)
-		FVector2D GetPlayerInputVector() {return PlayerInputVector;}
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Attacks")
+	TArray<TSubclassOf<UGameplayAbility>> LightAttacks;
 
-		UFUNCTION(BlueprintPure)
-		FVector GetMovementVector();
-		
-		UFUNCTION(BlueprintPure)
-		FVector GetCameraRightVector();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Attacks")
+	TArray<TSubclassOf<UGameplayAbility>> HeavyAttacks;
 
-		UFUNCTION(BlueprintPure)
-		FVector GetCameraForwardVector();
+	UFUNCTION(BlueprintPure)
+	FVector2D GetPlayerInputVector() {return PlayerInputVector;}
+
+	UFUNCTION(BlueprintPure)
+	FVector GetMovementVector();
+	
+	UFUNCTION(BlueprintPure)
+	FVector GetCameraRightVector();
+
+	UFUNCTION(BlueprintPure)
+	FVector GetCameraForwardVector();
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -125,11 +131,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-	UFUNCTION(Server, Reliable)
+	
 	void LightAttack();
-
-	UFUNCTION(Server, Reliable)
 	void HeavyAttack();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
