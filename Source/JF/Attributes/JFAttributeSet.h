@@ -21,6 +21,8 @@ UCLASS()
 class JF_API UJFAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
+public:
+	UJFAttributeSet();
 
 protected:
 	UFUNCTION()

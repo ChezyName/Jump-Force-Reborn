@@ -38,19 +38,19 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character | Abilities")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character|Abilities")
     TArray<UAbilityData*> CharacterAbilities;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character | Abilities")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character|Abilities")
     UAbilityData* DashAbility;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Attacks")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Attacks")
 	TArray<TSubclassOf<UGameplayAbility>> LightAttacks;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Attacks")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Attacks")
 	TArray<TSubclassOf<UGameplayAbility>> HeavyAttacks;
 
 	UFUNCTION(BlueprintPure)
@@ -110,6 +110,24 @@ public:
 		return CoreAttributes;
 	}
 
+	float GetNumericAttribute(const FGameplayAttribute &Attribute) const
+	{
+		if(GetAbilitySystemComponent())
+		{
+			return GetAbilitySystemComponent()->GetNumericAttribute(Attribute);
+		}
+
+		return 0;
+	}
+	
+	void SetNumericAttribute(const FGameplayAttribute &Attribute, float Value) const
+	{
+		if(GetAbilitySystemComponent())
+		{
+			GetAbilitySystemComponent()->SetNumericAttributeBase(Attribute, Value);
+		}
+	}
+
 	UFUNCTION(Server, Reliable)
 	void InitAbilitiesServer();
 	UFUNCTION(Client, Reliable)
@@ -118,9 +136,10 @@ public:
 	void InitAbilitiesInputSys();
 	
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	UJFAttributeSet* CoreAttributes;
 
 	UFUNCTION(Server, Unreliable)

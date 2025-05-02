@@ -63,6 +63,7 @@ AJFCharacter::AJFCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UJFASComponent>(TEXT("AbilitySystemComp"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
+	AbilitySystemComponent->AddAttributeSetSubobject(CoreAttributes);
 
 	//Load Dash Ability
 	static ConstructorHelpers::FObjectFinder<UAbilityData>
@@ -100,7 +101,7 @@ AJFCharacter::AJFCharacter()
 
 	//Light Attack
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	LightAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_HeavyAttack.IA_HeavyAttack'"));
+	LightAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_LightAttack.IA_LightAttack'"));
 	if (LightAttackActionFinder.Succeeded())
 	{
 		LightAttackAction = LightAttackActionFinder.Object;
@@ -108,7 +109,7 @@ AJFCharacter::AJFCharacter()
 
 	//Heavy Attack
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	HeavyAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_LightAttack.IA_LightAttack'"));
+	HeavyAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_HeavyAttack.IA_HeavyAttack'"));
 	if (HeavyAttackActionFinder.Succeeded())
 	{
 		HeavyAttackAction = HeavyAttackActionFinder.Object;
@@ -374,16 +375,40 @@ void AJFCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AJFCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if(HasAuthority())
+	{
+		//Tick down Attack Combo Reset Timers
+		float LCDR =
+			GetNumericAttribute(UJFAttributeSet::GetLightAttackComboResetTimeAttribute());
+		float HCDR =
+			GetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboResetTimeAttribute());
+
+		LCDR -= DeltaSeconds;
+		HCDR -= DeltaSeconds;
+
+		LCDR = FMath::Max(LCDR, 0.f);
+		HCDR = FMath::Max(HCDR, 0.f);
+
+		SetNumericAttribute(UJFAttributeSet::GetLightAttackComboResetTimeAttribute(), LCDR);
+		SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboResetTimeAttribute(), HCDR);
+	}
+}
+
 //====================================================================================
 // Attack Functions
 
 void AJFCharacter::LightAttack()
 {
 	if(LightAttacks.Num() == 0) return;
+
+	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute());
 	
 	//Server Func for Light Attack
-	int ComboNumber = ((int) GetCoreAttributes()->GetLightAttackCombo()) %
-		LightAttacks.Num();
+	int ComboNumber = CurrComboNumber % LightAttacks.Num();
 
 	AbilitySystemComponent->TryActivateAbilityByClass(LightAttacks[ComboNumber]);
 }
@@ -393,8 +418,10 @@ void AJFCharacter::HeavyAttack()
 	if(HeavyAttacks.Num() == 0) return;
 	
 	//Server Func for Light Attack
-	int ComboNumber = ((int) GetCoreAttributes()->GetHeavyAttackCombo()) %
-		HeavyAttacks.Num();
+	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute());
+	
+	//Server Func for Light Attack
+	int ComboNumber = CurrComboNumber % HeavyAttacks.Num();
 
 	AbilitySystemComponent->TryActivateAbilityByClass(HeavyAttacks[ComboNumber]);
 }
