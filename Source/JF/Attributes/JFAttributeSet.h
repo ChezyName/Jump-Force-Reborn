@@ -59,36 +59,38 @@ protected:
 		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, HeavyAttackComboResetTime, OldAttackReset)
 	}
 	
-
-public:
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
 	FGameplayAttributeData Health;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, Health);
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
 	FGameplayAttributeData MaxHealth;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MaxHealth);
 
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", Replicated, ReplicatedUsing=onSpeedChanged)
 	FGameplayAttributeData MovementSpeed;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MovementSpeed);
 
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onLightAttackComboChanged)
 	FGameplayAttributeData LightAttackCombo;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackCombo);
 	
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onLightAttackResetChanged)
 	FGameplayAttributeData LightAttackComboResetTime;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackComboResetTime);
 
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onHeavyAttackComboChanged)
 	FGameplayAttributeData HeavyAttackCombo;
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
 	
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onSpeedChanged)
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onHeavyAttackResetChanged)
 	FGameplayAttributeData HeavyAttackComboResetTime;
+	
+
+public:
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, Health);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MaxHealth);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MovementSpeed);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackCombo);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackComboResetTime);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackComboResetTime);
 
+	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

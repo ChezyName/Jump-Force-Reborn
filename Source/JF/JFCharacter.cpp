@@ -395,6 +395,10 @@ void AJFCharacter::Tick(float DeltaSeconds)
 
 		SetNumericAttribute(UJFAttributeSet::GetLightAttackComboResetTimeAttribute(), LCDR);
 		SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboResetTimeAttribute(), HCDR);
+
+		//Reset Combo if Reset Time <= 0
+		if(LCDR <= 0) SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
+		if(HCDR <= 0) SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
 	}
 }
 
