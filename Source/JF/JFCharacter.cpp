@@ -18,6 +18,13 @@
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
+/** TODO
+ * Combo-Combo System
+ * Light Combo & Heavy Combo Share Combo Number & Combo Time
+ * For Example Light -> Heavy -> Light will select the 2nd combo value for Heavy
+ * God of War (2018 / Ragnorok) Style System
+**/
+
 //////////////////////////////////////////////////////////////////////////
 // AJFCharacter
 
@@ -382,23 +389,19 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	if(HasAuthority())
 	{
 		//Tick down Attack Combo Reset Timers
-		float LCDR =
-			GetNumericAttribute(UJFAttributeSet::GetLightAttackComboResetTimeAttribute());
-		float HCDR =
-			GetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboResetTimeAttribute());
+		float ComboCDR =
+			GetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute());
+		
+		ComboCDR = FMath::Max(ComboCDR - DeltaSeconds, 0.f);
 
-		LCDR -= DeltaSeconds;
-		HCDR -= DeltaSeconds;
-
-		LCDR = FMath::Max(LCDR, 0.f);
-		HCDR = FMath::Max(HCDR, 0.f);
-
-		SetNumericAttribute(UJFAttributeSet::GetLightAttackComboResetTimeAttribute(), LCDR);
-		SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboResetTimeAttribute(), HCDR);
+		SetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute(), ComboCDR);
 
 		//Reset Combo if Reset Time <= 0
-		if(LCDR <= 0) SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
-		if(HCDR <= 0) SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
+		if(ComboCDR <= 0)
+		{
+			SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
+			SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
+		}
 	}
 }
 

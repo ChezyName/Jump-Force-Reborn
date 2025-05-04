@@ -26,7 +26,7 @@ void UJFAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(UJFAttributeSet, MovementSpeed);
 
 	DOREPLIFETIME(UJFAttributeSet, LightAttackCombo);
-	DOREPLIFETIME(UJFAttributeSet, LightAttackComboResetTime);
 	DOREPLIFETIME(UJFAttributeSet, HeavyAttackCombo);
-	DOREPLIFETIME(UJFAttributeSet, HeavyAttackComboResetTime);
+	
+	DOREPLIFETIME(UJFAttributeSet, ComboResetTime);
 }

@@ -49,14 +49,9 @@ protected:
 		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, HeavyAttackCombo, OldAttackCombo)
 	}
 	UFUNCTION()
-	void onLightAttackResetChanged(const FGameplayAttributeData& OldAttackReset)
+	void onComboResetChanged(const FGameplayAttributeData& OldAttackReset)
 	{
-		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, LightAttackComboResetTime, OldAttackReset)
-	}
-	UFUNCTION()
-	void onHeavyAttackResetChanged(const FGameplayAttributeData& OldAttackReset)
-	{
-		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, HeavyAttackComboResetTime, OldAttackReset)
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, ComboResetTime, OldAttackReset)
 	}
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
@@ -70,15 +65,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onLightAttackComboChanged)
 	FGameplayAttributeData LightAttackCombo;
-	
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onLightAttackResetChanged)
-	FGameplayAttributeData LightAttackComboResetTime;
 
 	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onHeavyAttackComboChanged)
 	FGameplayAttributeData HeavyAttackCombo;
 	
-	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onHeavyAttackResetChanged)
-	FGameplayAttributeData HeavyAttackComboResetTime;
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onComboResetChanged)
+	FGameplayAttributeData ComboResetTime;
 	
 
 public:
@@ -86,9 +78,8 @@ public:
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MaxHealth);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MovementSpeed);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackCombo);
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackComboResetTime);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackComboResetTime);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, ComboResetTime);
 
 	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
