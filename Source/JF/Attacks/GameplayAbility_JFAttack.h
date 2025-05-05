@@ -31,10 +31,25 @@ public:
 	uint8 HitboxID;
 
 	UPROPERTY(BlueprintReadOnly)
-	UPrimitiveComponent* Component = nullptr;
+	FVector Location;
+
+	UPROPERTY(BlueprintReadOnly)
+	FRotator Rotation;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FVector Size;
 	
 	UPROPERTY(BlueprintReadOnly)
 	AActor* Owner;
+
+	UPROPERTY(BlueprintReadOnly)
+	UPrimitiveComponent* AttachedTo;
+
+	UPROPERTY(BlueprintReadOnly)
+	USkeletalMeshComponent* AttachedTo_SKEL;
+
+	UPROPERTY(BlueprintReadOnly)
+	FName AttachToBoneName;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bActive = false;
@@ -60,7 +75,8 @@ private:
 	}
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	
 	UPROPERTY()
 	UHitboxTask* HitboxTask;
 
@@ -68,6 +84,12 @@ private:
 	void onTick();
 	UFUNCTION()
 	void TickHitbox(UHitbox* Hitbox);
+	
+	UFUNCTION()
+	void DebugHitbox(UHitbox* Hitbox, FColor Color);
+
+	UFUNCTION()
+	void GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors);
 	
 protected:
 	/*
@@ -101,6 +123,12 @@ protected:
 	void DisableHitbox(UHitbox* Hitbox) { if(Hitbox != nullptr) Hitbox->bActive = false; }
 	UFUNCTION(BlueprintCallable)
 	void ResetActorsHit() {ActorsHit.Reset();}
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyHitbox(UHitbox* Hitbox);
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyAllHitboxs();
 
 	/*
 	UFUNCTION(BlueprintCallable)

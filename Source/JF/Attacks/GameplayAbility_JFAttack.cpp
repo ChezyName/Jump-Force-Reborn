@@ -4,8 +4,7 @@
 #include "GameplayAbility_JFAttack.h"
 
 #include "HitboxTask.h"
-#include "Components/BoxComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Engine/OverlapResult.h"
 #include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -23,6 +22,15 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
+void UGameplayAbility_JFAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	DestroyAllHitboxs();
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 void UGameplayAbility_JFAttack::onTick()
 {
 	for(int i = 0; i < Hitboxes.Num(); i++)
@@ -31,27 +39,90 @@ void UGameplayAbility_JFAttack::onTick()
 	}
 }
 
+void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color)
+{
+	FVector Position = Hitbox->Location;
+	FRotator Rotation = Hitbox->Rotation;
+	FVector Size = Hitbox->Size;
+
+	if (Hitbox->AttachedTo_SKEL && Hitbox->AttachToBoneName != NAME_None)
+	{
+		// Attached to a Skeletal Mesh Bone
+		const FTransform SocketTransform = Hitbox->AttachedTo_SKEL->GetSocketTransform(Hitbox->AttachToBoneName);
+		Position = SocketTransform.TransformPosition(Hitbox->Location);
+		Rotation = SocketTransform.TransformRotation(Hitbox->Rotation.Quaternion()).Rotator();
+	}
+	else if (Hitbox->AttachedTo)
+	{
+		// Attached to a regular Component
+		const FTransform BaseTransform = Hitbox->AttachedTo->GetComponentTransform();
+		Position = BaseTransform.TransformPosition(Hitbox->Location);
+		Rotation = BaseTransform.TransformRotation(Hitbox->Rotation.Quaternion()).Rotator();
+	}
+
+	//Display as Box
+	DrawDebugBox(GetWorld(), Position, Size * 0.5f, Rotation.Quaternion(),
+		Color, false, (1.f/60.f), 0, 2.5f);
+}
+
+void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors)
+{
+	Actors.Empty();
+	
+	FVector Position = Hitbox->Location;
+	FRotator Rotation = Hitbox->Rotation;
+	FVector Size = Hitbox->Size;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	TArray<FOverlapResult> OverlapResults = {};
+	
+	FCollisionQueryParams QueryParams;
+	TArray<AActor*> IgnoredActors = { Hitbox->Owner };
+	QueryParams.AddIgnoredActors(IgnoredActors);
+
+	if (Hitbox->AttachedTo_SKEL && Hitbox->AttachToBoneName != NAME_None)
+	{
+		// Attached to a Skeletal Mesh Bone
+		const FTransform SocketTransform = Hitbox->AttachedTo_SKEL->GetSocketTransform(Hitbox->AttachToBoneName);
+		Position = SocketTransform.TransformPosition(Hitbox->Location);
+		Rotation = SocketTransform.TransformRotation(Hitbox->Rotation.Quaternion()).Rotator();
+	}
+	else if (Hitbox->AttachedTo)
+	{
+		// Attached to a regular Component
+		const FTransform BaseTransform = Hitbox->AttachedTo->GetComponentTransform();
+		Position = BaseTransform.TransformPosition(Hitbox->Location);
+		Rotation = BaseTransform.TransformRotation(Hitbox->Rotation.Quaternion()).Rotator();
+	}
+	
+	if (Hitbox->HitboxType == Box)
+	{
+		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
+			ECC_Pawn, FCollisionShape::MakeBox(Size * 0.5f),
+			QueryParams);
+	}
+
+	//Filter Hits
+}
+
 void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 {
 	if(Hitbox == nullptr) return;
+	//Showcase if Debug
+	if(Hitbox->bDebug) DebugHitbox(Hitbox, Hitbox->bActive ? FColor::Green : FColor::Red);
+	
 	//Tick this Hitbox
-	if(Hitbox->bActive && Hitbox->Component != nullptr)
+	if(Hitbox->bActive)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Hitbox: " + FString::Printf(TEXT("%u"), Hitbox->HitboxID)
-		+ " is Active", true, true, FLinearColor::Green,
-			30);
-		
 		//Deal Damage if Targets Hit
 		TArray<AActor*> ActorsOverlapping;
-		Hitbox->Component->GetOverlappingActors(ActorsOverlapping, AJFCharacter::StaticClass());
+		GetHitboxOverlap(Hitbox, ActorsOverlapping);
 
 		for(AActor* Actor : ActorsOverlapping)
 		{
 			if(Actor == nullptr) continue; //Ignore if Invalid
-			
-			UKismetSystemLibrary::PrintString(GetWorld(),"Actor was Hit: " +
-				Actor->GetName(), true, true, FLinearColor::Yellow,
-				30);
 			
 			if(ActorsHit.Contains(Actor)) continue; // Cannot Target Prev Targeted
 			if(Actor == GetAvatarActorFromActorInfo()) continue; // Cannot Target Self
@@ -71,66 +142,43 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 			}
 		}
 	}
-	else
-	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Hitbox: " + FString::Printf(TEXT("%u"), Hitbox->HitboxID)
-		+ " is NOT Active for the following: " +
-		"     Is Active: " + (Hitbox->bActive ? "true" : "false") +
-		"     Is Component Valid: " + (Hitbox->Component != nullptr ? "true" : "false"),
-		true, true, FLinearColor::Red,
-			30);
-	}
 }
 
 UHitbox* UGameplayAbility_JFAttack::CreateHitbox(TEnumAsByte<EHitboxType> Type,
-                                                FVector Position, FRotator Rotation, FVector Size,
-                                                UPrimitiveComponent* AttachTo, FName AttachToBoneName, float Lifetime, bool Debug)
+                                                 FVector Position, FRotator Rotation, FVector Size,
+                                                 UPrimitiveComponent* AttachTo, FName AttachToBoneName, 
+                                                 float Lifetime, bool Debug)
 {
 	UHitbox* BuildingHitbox = NewObject<UHitbox>(this);
 	BuildingHitbox->HitboxID = HitboxIDGenerator();
 	BuildingHitbox->Lifetime = Lifetime;
-	BuildingHitbox->Component = nullptr;
 	BuildingHitbox->HitboxType = Type;
 	BuildingHitbox->bDebug = Debug;
-	BuildingHitbox->Owner = GetAvatarActorFromActorInfo();
-
-	if(BuildingHitbox->Owner == nullptr)
-	{
-		Hitboxes.Add(BuildingHitbox);
-		return BuildingHitbox;
-	}
-
-	//Create Hitbox
-	if(Type == Box)
-	{
-		UBoxComponent* Box = NewObject<UBoxComponent>(BuildingHitbox->Owner);
-		Box->RegisterComponent();
-		Box->SetBoxExtent(Size);
-		Box->bHiddenInGame = !Debug;
-		BuildingHitbox->Component = Box;
-	}
-	else if(Type == Capsule)
-	{
-		UCapsuleComponent* Capsule = NewObject<UCapsuleComponent>(BuildingHitbox->Owner);
-		Capsule->RegisterComponent();
-		Capsule->SetCapsuleSize(Size.X, Size.Y, true);
-		Capsule->bHiddenInGame = !Debug;
-		BuildingHitbox->Component = Capsule;
-	}
 	
-	if(AttachTo != nullptr && BuildingHitbox->Component != nullptr)
+	BuildingHitbox->Owner = GetAvatarActorFromActorInfo();
+	BuildingHitbox->AttachedTo = AttachTo;
+	BuildingHitbox->AttachToBoneName = AttachToBoneName;
+	
+	BuildingHitbox->Location = Position;
+	BuildingHitbox->Rotation = Rotation;
+	BuildingHitbox->Size = Size;
+
+	if(USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(AttachTo))
 	{
-		BuildingHitbox->Component->AttachToComponent(AttachTo,
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachToBoneName);
-			
-		BuildingHitbox->Component->SetRelativeLocation(Position);
-		BuildingHitbox->Component->SetRelativeRotation(Rotation);
-	}
-	else {
-		BuildingHitbox->Component->SetWorldLocation(Position);
-		BuildingHitbox->Component->SetWorldRotation(Rotation);
+		BuildingHitbox->AttachedTo_SKEL = Comp;
 	}
 
 	Hitboxes.Add(BuildingHitbox);
 	return BuildingHitbox;
+}
+
+void UGameplayAbility_JFAttack::DestroyHitbox(UHitbox* Hitbox)
+{
+	Hitboxes.Remove(Hitbox);
+	Hitbox = nullptr;
+}
+
+void UGameplayAbility_JFAttack::DestroyAllHitboxs()
+{
+	Hitboxes.Empty();
 }
