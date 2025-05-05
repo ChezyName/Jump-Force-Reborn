@@ -5,6 +5,7 @@
 
 #include "HitboxTask.h"
 #include "Engine/OverlapResult.h"
+#include "DrawDebugHelpers.h"
 #include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -27,19 +28,22 @@ void UGameplayAbility_JFAttack::EndAbility(const FGameplayAbilitySpecHandle Hand
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	DestroyAllHitboxs();
+	FlushPersistentDebugLines(GetWorld());
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UGameplayAbility_JFAttack::onTick()
 {
+	FlushPersistentDebugLines(GetWorld());
+	
 	for(int i = 0; i < Hitboxes.Num(); i++)
 	{
 		TickHitbox(Hitboxes[i]);
 	}
 }
 
-void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color)
+void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color, bool Display)
 {
 	FVector Position = Hitbox->Location;
 	FRotator Rotation = Hitbox->Rotation;
@@ -61,8 +65,8 @@ void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color)
 	}
 
 	//Display as Box
-	DrawDebugBox(GetWorld(), Position, Size * 0.5f, Rotation.Quaternion(),
-		Color, false, (1.f/60.f), 0, 2.5f);
+	DrawDebugBox(GetWorld(), Position, Size, Rotation.Quaternion(),
+		Color, Display, (1.f/60.f), 0, 2.5f);
 }
 
 void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors)
@@ -100,7 +104,7 @@ void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*
 	if (Hitbox->HitboxType == Box)
 	{
 		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
-			ECC_Pawn, FCollisionShape::MakeBox(Size * 0.5f),
+			ECC_Pawn, FCollisionShape::MakeBox(Size),
 			QueryParams);
 	}
 
@@ -175,10 +179,12 @@ UHitbox* UGameplayAbility_JFAttack::CreateHitbox(TEnumAsByte<EHitboxType> Type,
 void UGameplayAbility_JFAttack::DestroyHitbox(UHitbox* Hitbox)
 {
 	Hitboxes.Remove(Hitbox);
+	DebugHitbox(Hitbox, FColor::Red, false);
 	Hitbox = nullptr;
 }
 
 void UGameplayAbility_JFAttack::DestroyAllHitboxs()
 {
+	for(UHitbox* Hitbox : Hitboxes) DebugHitbox(Hitbox, FColor::Red, false);
 	Hitboxes.Empty();
 }

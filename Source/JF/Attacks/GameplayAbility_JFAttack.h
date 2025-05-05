@@ -86,7 +86,7 @@ private:
 	void TickHitbox(UHitbox* Hitbox);
 	
 	UFUNCTION()
-	void DebugHitbox(UHitbox* Hitbox, FColor Color);
+	void DebugHitbox(UHitbox* Hitbox, FColor Color, bool Display = true);
 
 	UFUNCTION()
 	void GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors);
