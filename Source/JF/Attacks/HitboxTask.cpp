@@ -4,20 +4,23 @@
 #include "TimerManager.h"
 #include "GameFramework/Actor.h"
 #include "Abilities/GameplayAbility.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-UHitboxTask* UHitboxTask::CreateHitboxTicker(UGameplayAbility* OwningAbility, float TickInterval)
+UHitboxTask* UHitboxTask::CreateHitboxTicker(UGameplayAbility* OwningParentAbility, float TickInterval)
 {
-	UHitboxTask* Task = NewObject<UHitboxTask>(OwningAbility);
+	UHitboxTask* Task = NewAbilityTask<UHitboxTask>(OwningParentAbility);
 	Task->Interval = TickInterval;
-	Task->Ability = OwningAbility;
+	Task->ParentAbility = OwningParentAbility;
 	return Task;
 }
 
 void UHitboxTask::Activate()
 {
-	if (Ability && Ability->GetWorld())
+	if (ParentAbility && ParentAbility->GetWorld())
 	{
-		Ability->GetWorld()->GetTimerManager().SetTimer(
+		UKismetSystemLibrary::PrintString(GetWorld(), "on Activate");
+		
+		ParentAbility->GetWorld()->GetTimerManager().SetTimer(
 			TickTimerHandle,
 			this,
 			&UHitboxTask::TickHitboxes,
@@ -31,9 +34,9 @@ void UHitboxTask::Activate()
 
 void UHitboxTask::OnDestroy(bool bInOwnerFinished)
 {
-	if (Ability && Ability->GetWorld())
+	if (ParentAbility && ParentAbility->GetWorld())
 	{
-		Ability->GetWorld()->GetTimerManager().ClearTimer(TickTimerHandle);
+		ParentAbility->GetWorld()->GetTimerManager().ClearTimer(TickTimerHandle);
 	}
 
 	Super::OnDestroy(bInOwnerFinished);

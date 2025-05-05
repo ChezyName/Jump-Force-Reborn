@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameplayTask.h"
 #include "Abilities/GameplayAbility.h"
+#include "Abilities/Tasks/AbilityTask.h"
 #include "HitboxTask.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHitboxTick);
 
 UCLASS()
-class JF_API UHitboxTask : public UGameplayTask
+class JF_API UHitboxTask : public UAbilityTask
 {
 	GENERATED_BODY()
 public:
@@ -21,7 +22,7 @@ public:
 	FTimerHandle TickTimerHandle;
 
 	UPROPERTY()
-	UGameplayAbility* Ability;
+	UGameplayAbility* ParentAbility;
 
 	static UHitboxTask* CreateHitboxTicker(UGameplayAbility* OwningAbility, float TickInterval = 1.f/60.f);
 

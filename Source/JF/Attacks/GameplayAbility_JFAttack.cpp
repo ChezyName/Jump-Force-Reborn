@@ -13,15 +13,19 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
                                                 const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                 const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	UHitboxTask* HitboxTask = UHitboxTask::CreateHitboxTicker(this);
+	HitboxTask = UHitboxTask::CreateHitboxTicker(this);
 	HitboxTask->OnTick.AddDynamic(this, &UGameplayAbility_JFAttack::onTick);
 	HitboxTask->ReadyForActivation();
+
+	UKismetSystemLibrary::PrintString(GetWorld(), "Ability has been activated");
+	
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
 void UGameplayAbility_JFAttack::onTick()
 {
+	UKismetSystemLibrary::PrintString(GetWorld(), "Tick");
+	
 	for(int i = 0; i < Hitboxes.Num(); i++)
 	{
 		TickHitbox(Hitboxes[i]);

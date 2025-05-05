@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HitboxTask.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayAbility_JFAttack.generated.h"
 
@@ -57,7 +58,12 @@ private:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	UPROPERTY()
+	UHitboxTask* HitboxTask;
+
+	UFUNCTION()
 	void onTick();
+	UFUNCTION()
 	void TickHitbox(FHitbox Hitbox);
 	
 protected:
