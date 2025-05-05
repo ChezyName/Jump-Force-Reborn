@@ -14,11 +14,14 @@ enum EHitboxType : uint8
 	Capsule,
 };
 
-USTRUCT(BlueprintType)
-struct FHitbox
+UCLASS(BlueprintType)
+class UHitbox : public UObject
 {
 	GENERATED_BODY()
 public:
+	UHitbox();
+	UHitbox(const FObjectInitializer& ObjectInitializer);
+	
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EHitboxType> HitboxType;
 	UPROPERTY(BlueprintReadOnly)
@@ -46,14 +49,14 @@ class JF_API UGameplayAbility_JFAttack : public UGameplayAbility
 	GENERATED_BODY()
 private:
 	UPROPERTY()
-	TArray<FHitbox> Hitboxes;
+	TArray<UHitbox*> Hitboxes;
 	UPROPERTY()
 	TArray<AActor*> ActorsHit;
 
 	int HitboxIDGenerator()
 	{
 		if(Hitboxes.Num() == 0) return 0;
-		return Hitboxes.Last().HitboxID + 1;
+		return Hitboxes.Last()->HitboxID + 1;
 	}
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -64,7 +67,7 @@ private:
 	UFUNCTION()
 	void onTick();
 	UFUNCTION()
-	void TickHitbox(FHitbox Hitbox);
+	void TickHitbox(UHitbox* Hitbox);
 	
 protected:
 	/*
@@ -86,16 +89,16 @@ protected:
 	 * @return 
 	 */
 	UFUNCTION(BlueprintCallable)
-	FHitbox CreateHitbox(TEnumAsByte<EHitboxType> Type = EHitboxType::Box,
+	UHitbox* CreateHitbox(TEnumAsByte<EHitboxType> Type = EHitboxType::Box,
 		FVector Position = FVector::ZeroVector, FRotator Rotation = FRotator::ZeroRotator,
 		FVector Size = FVector(100,100,100),
 		UPrimitiveComponent* AttachTo = nullptr, FName AttachToBoneName = NAME_None,
 		float Lifetime = -1, bool Debug = false);
 
 	UFUNCTION(BlueprintCallable)
-	void EnableHitbox(FHitbox Hitbox) { Hitbox.bActive = true; }
+	void EnableHitbox(UHitbox* Hitbox) { if(Hitbox != nullptr) Hitbox->bActive = true; }
 	UFUNCTION(BlueprintCallable)
-	void DisableHitbox(FHitbox Hitbox) { Hitbox.bActive = false; }
+	void DisableHitbox(UHitbox* Hitbox) { if(Hitbox != nullptr) Hitbox->bActive = false; }
 	UFUNCTION(BlueprintCallable)
 	void ResetActorsHit() {ActorsHit.Reset();}
 

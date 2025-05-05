@@ -18,8 +18,6 @@ void UHitboxTask::Activate()
 {
 	if (ParentAbility && ParentAbility->GetWorld())
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "on Activate");
-		
 		ParentAbility->GetWorld()->GetTimerManager().SetTimer(
 			TickTimerHandle,
 			this,
