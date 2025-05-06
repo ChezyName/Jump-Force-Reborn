@@ -6,6 +6,7 @@
 #include "HitboxTask.h"
 #include "Engine/OverlapResult.h"
 #include "DrawDebugHelpers.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 

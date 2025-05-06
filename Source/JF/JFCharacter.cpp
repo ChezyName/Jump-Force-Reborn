@@ -387,19 +387,34 @@ void AJFCharacter::Tick(float DeltaSeconds)
 
 	if(HasAuthority())
 	{
-		//Tick down Attack Combo Reset Timers
-		float ComboCDR =
-			GetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute());
-		
-		ComboCDR = FMath::Max(ComboCDR - DeltaSeconds, 0.f);
+		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
+		bool hasAttackTags = false;
 
-		SetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute(), ComboCDR);
-
-		//Reset Combo if Reset Time <= 0
-		if(ComboCDR <= 0)
+		if(GetAbilitySystemComponent())
 		{
-			SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
-			SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
+			FGameplayTagContainer TagsToCheck;
+			TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Light")));
+			TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Heavy")));
+
+			hasAttackTags = GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck);
+		}
+
+		if(!hasAttackTags)
+		{
+			//Tick down Attack Combo Reset Timers
+			float ComboCDR =
+				GetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute());
+		
+			ComboCDR = FMath::Max(ComboCDR - DeltaSeconds, 0.f);
+
+			SetNumericAttribute(UJFAttributeSet::GetComboResetTimeAttribute(), ComboCDR);
+
+			//Reset Combo if Reset Time <= 0
+			if(ComboCDR <= 0)
+			{
+				SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
+				SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
+			}
 		}
 	}
 }

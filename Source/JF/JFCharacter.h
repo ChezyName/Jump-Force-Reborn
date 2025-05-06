@@ -109,7 +109,7 @@ public:
 	{
 		return CoreAttributes;
 	}
-
+	
 	float GetNumericAttribute(const FGameplayAttribute &Attribute) const
 	{
 		if(GetAbilitySystemComponent())
@@ -119,7 +119,7 @@ public:
 
 		return 0;
 	}
-	
+
 	void SetNumericAttribute(const FGameplayAttribute &Attribute, float Value) const
 	{
 		if(GetAbilitySystemComponent())
