@@ -168,14 +168,13 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		//Ability System
-		UKismetSystemLibrary::PrintString(GetWorld(), "Input System [HANDSHAKE] Ability System @ SetupPlayerInputComp",
-			true,true,FLinearColor::Green,30);
 		AbilitySystemComponent->SetInputComponent(EnhancedInputComponent);
 		
 		InitAbilitiesInputSys();
 		
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AJFCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AJFCharacter::Move);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJFCharacter::Look);
