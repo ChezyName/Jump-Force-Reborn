@@ -395,6 +395,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 			FGameplayTagContainer TagsToCheck;
 			TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Light")));
 			TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Heavy")));
+			TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
 
 			hasAttackTags = GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck);
 		}

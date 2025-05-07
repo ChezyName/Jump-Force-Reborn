@@ -143,6 +143,7 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 						30);
 				}
 
+				OnHitboxHit(Hitbox);
 				ActorsHit.Add(Actor);
 			}
 		}

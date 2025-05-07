@@ -90,6 +90,10 @@ private:
 
 	UFUNCTION()
 	void GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors);
+public:
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = Hitbox, DisplayName = "Hitbox Hit", meta=(ScriptName = "HitboxHit"))
+	void OnHitboxHit(UHitbox* Hitbox);
 	
 protected:
 	/*
