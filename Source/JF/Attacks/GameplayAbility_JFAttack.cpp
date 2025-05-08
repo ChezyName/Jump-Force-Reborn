@@ -110,6 +110,16 @@ void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*
 	}
 
 	//Filter Hits
+	for(FOverlapResult Overlap : OverlapResults)
+	{
+		//Only Allow if not HB Owner && JFChar
+		if(Overlap.GetActor() &&
+			Overlap.GetActor()->IsA(AJFCharacter::StaticClass())
+			&& Overlap.GetActor() != Hitbox->Owner)
+		{
+			Actors.Add(Overlap.GetActor());
+		}
+	}
 }
 
 void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
@@ -124,6 +134,8 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 		//Deal Damage if Targets Hit
 		TArray<AActor*> ActorsOverlapping;
 		GetHitboxOverlap(Hitbox, ActorsOverlapping);
+
+		UKismetSystemLibrary::PrintString(GetWorld(),"Hitbox Active & Hit " + FString::SanitizeFloat(ActorsOverlapping.Num()));
 
 		for(AActor* Actor : ActorsOverlapping)
 		{
