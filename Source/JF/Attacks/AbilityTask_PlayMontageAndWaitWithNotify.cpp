@@ -6,11 +6,13 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemLog.h"
 #include "AbilitySystemGlobals.h"
+#include "AbilitySystemInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UAbilityTask_PlayMontageAndWaitWithNotify* UAbilityTask_PlayMontageAndWaitWithNotify::CreatePlayMontageAndWaitWithNotifyProxy(
 	UGameplayAbility* OwningAbility, FName TaskInstanceName, UAnimMontage* MontageToPlay, float Rate,
 	FName StartSection, bool bStopWhenAbilityEnds, float AnimRootMotionTranslationScale, float StartTimeSeconds,
-	bool bAllowInterruptAfterBlendOut)
+	bool bAllowInterruptAfterBlendOut, AActor* TargetActor)
 {
 	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Rate(Rate);
 
@@ -22,11 +24,12 @@ UAbilityTask_PlayMontageAndWaitWithNotify* UAbilityTask_PlayMontageAndWaitWithNo
 	MyObj->bStopWhenAbilityEnds = bStopWhenAbilityEnds;
 	MyObj->bAllowInterruptAfterBlendOut = bAllowInterruptAfterBlendOut;
 	MyObj->StartTimeSeconds = StartTimeSeconds;
+	MyObj->TargetActor = TargetActor;
 	
 	return MyObj;
 }
 
-void UAbilityTask_PlayMontageAndWaitWithNotify::Activate()
+void UAbilityTask_PlayMontageAndWaitWithNotify::ActivateOnTarget(AActor* Actor)
 {
 	if (Ability == nullptr)
 	{
@@ -34,11 +37,37 @@ void UAbilityTask_PlayMontageAndWaitWithNotify::Activate()
 	}
 
 	bool bPlayedMontage = false;
+	UAbilitySystemComponent* ASC = nullptr;
 
-	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
+	if(Actor != nullptr)
 	{
-		const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
-		UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
+		if(UAbilitySystemComponent* ASComp = Actor->FindComponentByClass<UAbilitySystemComponent>())
+		{
+			ASC = ASComp;
+		}
+	}
+	
+	if(ASC == nullptr) {
+		ASC = AbilitySystemComponent.Get();
+	}
+
+	if (ASC != nullptr)
+	{
+		UAnimInstance* AnimInstance = nullptr;
+		if(Actor != nullptr)
+		{
+			if(USkeletalMeshComponent* SKMesh = Actor->FindComponentByClass<USkeletalMeshComponent>())
+			{
+				AnimInstance = SKMesh->GetAnimInstance();
+			}
+		}
+		
+		if(AnimInstance == nullptr)
+		{
+			const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
+			AnimInstance = ActorInfo->GetAnimInstance();
+		}
+		
 		if (AnimInstance != nullptr)
 		{
 			if (ASC->PlayMontage(Ability, Ability->GetCurrentActivationInfo(), MontageToPlay, Rate, StartSection, StartTimeSeconds) > 0.f)
@@ -94,6 +123,11 @@ void UAbilityTask_PlayMontageAndWaitWithNotify::Activate()
 	SetWaitingOnAvatar();
 }
 
+void UAbilityTask_PlayMontageAndWaitWithNotify::Activate()
+{
+	ActivateOnTarget(TargetActor);
+}
+
 void UAbilityTask_PlayMontageAndWaitWithNotify::OnDestroy(bool bInOwnerFinished)
 {
 	Super::OnDestroy(bInOwnerFinished);
@@ -108,13 +142,20 @@ void UAbilityTask_PlayMontageAndWaitWithNotify::OnDestroy(bool bInOwnerFinished)
 				return;
 			}
 
-			const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
-			if (ActorInfo == nullptr)
+			UAbilitySystemComponent* ASC = nullptr;
+
+			if(TargetActor)
 			{
-				return;
+				if(UAbilitySystemComponent* ASComp = TargetActor->FindComponentByClass<UAbilitySystemComponent>())
+				{
+					ASC = ASComp;
+				}
+			}
+
+			if(ASC == nullptr) {
+				ASC = AbilitySystemComponent.Get();
 			}
 			
-			UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 			if (ASC && Ability)
 			{
 				if (ASC->GetAnimatingAbility() == Ability
@@ -123,8 +164,23 @@ void UAbilityTask_PlayMontageAndWaitWithNotify::OnDestroy(bool bInOwnerFinished)
 					// Stop the montage
 					ASC->CurrentMontageStop();
 
+					UAnimInstance* AnimInstance = nullptr;
+					if(TargetActor != nullptr)
+					{
+						if(USkeletalMeshComponent* SKMesh = TargetActor->FindComponentByClass<USkeletalMeshComponent>())
+						{
+							AnimInstance = SKMesh->GetAnimInstance();
+						}
+					}
+		
+					if(AnimInstance == nullptr)
+					{
+						const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
+						AnimInstance = ActorInfo->GetAnimInstance();
+					}
+
 					// Clean up notify bindings
-					if (UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance())
+					if (AnimInstance != nullptr)
 					{
 						AnimInstance->OnPlayMontageNotifyBegin.RemoveDynamic(this,
 							&UAbilityTask_PlayMontageAndWaitWithNotify::OnNotifyBegin_FUNC);

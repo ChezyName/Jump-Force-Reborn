@@ -22,6 +22,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMontageWaitSimpleDelegate OnNotifyEnd;
+	
+	UPROPERTY(BlueprintReadOnly)
+	AActor* TargetActor;
 
 	/** 
 	 * Start playing an animation montage on the avatar actor and wait for it to finish
@@ -37,11 +40,14 @@ public:
 	 * @param _AnimRootMotionTranslationScale Change to modify size of root motion or set to 0 to block it entirely
 	 * @param _StartTimeSeconds Starting time offset in montage, this will be overridden by StartSection if that is also set
 	 * @param _bAllowInterruptAfterBlendOut If true, you can receive OnInterrupted after an OnBlendOut started (otherwise OnInterrupted will not fire when interrupted, but you will not get OnComplete).
+	 * @param _TargetActor Actor to Play Animation Montage on - MUST HAVE AbilitySystemComponent
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Tasks", meta = (DisplayName="PlayMontageAndWaitWithNotify",
 		HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 	static UAbilityTask_PlayMontageAndWaitWithNotify* CreatePlayMontageAndWaitWithNotifyProxy(UGameplayAbility* OwningAbility,
-		FName _TaskInstanceName, UAnimMontage* _MontageToPlay, float _Rate = 1.f, FName _StartSection = NAME_None, bool _bStopWhenAbilityEnds = true, float _AnimRootMotionTranslationScale = 1.f, float _StartTimeSeconds = 0.f, bool _bAllowInterruptAfterBlendOut = false);
+		FName _TaskInstanceName, UAnimMontage* _MontageToPlay, float _Rate = 1.f, FName _StartSection = NAME_None,
+		bool _bStopWhenAbilityEnds = true, float _AnimRootMotionTranslationScale = 1.f, float _StartTimeSeconds = 0.f,
+		bool _bAllowInterruptAfterBlendOut = false, AActor* _TargetActor = nullptr);
 
 protected:
 	UFUNCTION()
@@ -49,6 +55,8 @@ protected:
 
 	UFUNCTION()
 	void OnNotifyEnd_FUNC(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPayload) {OnNotifyEnd.Broadcast();}
+
+	void ActivateOnTarget(AActor* Actor);
 	
 	virtual void Activate() override;
 
