@@ -440,7 +440,7 @@ void AJFCharacter::HeavyAttack()
 	if(HeavyAttacks.Num() == 0) return;
 	
 	//Server Func for Light Attack
-	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute());
+	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute());
 	
 	//Server Func for Light Attack
 	int ComboNumber = CurrComboNumber % HeavyAttacks.Num();
