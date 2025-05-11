@@ -150,7 +150,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-	
+
+	FName LastAttack = NAME_None;
+	int SyncAttacks(bool isLight = false);
 	void LightAttack();
 	void HeavyAttack();
 

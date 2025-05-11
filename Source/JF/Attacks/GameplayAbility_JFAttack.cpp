@@ -135,7 +135,7 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 		TArray<AActor*> ActorsOverlapping;
 		GetHitboxOverlap(Hitbox, ActorsOverlapping);
 
-		UKismetSystemLibrary::PrintString(GetWorld(),"Hitbox Active & Hit " + FString::SanitizeFloat(ActorsOverlapping.Num()));
+		//UKismetSystemLibrary::PrintString(GetWorld(),"Hitbox Active & Hit " + FString::SanitizeFloat(ActorsOverlapping.Num()));
 
 		for(AActor* Actor : ActorsOverlapping)
 		{

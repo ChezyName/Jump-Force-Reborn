@@ -415,6 +415,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 			{
 				SetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute(), 0.f);
 				SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
+				LastAttack = NAME_None;
 			}
 		}
 	}
@@ -423,16 +424,69 @@ void AJFCharacter::Tick(float DeltaSeconds)
 //====================================================================================
 // Attack Functions
 
+int AJFCharacter::SyncAttacks(bool isLight)
+{
+	//Same Attacks - Return Current Index
+	if((LastAttack == "Light" && isLight) ||
+		(LastAttack == "Heavy" && !isLight) || LastAttack == NAME_None)
+	{
+		//return base
+		if(isLight) return GetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute());
+		return GetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute());
+	}
+
+	//Last Attack is not same as Current
+	//Convert Last Attack Index into Current Attack Index
+	const float base = GetNumericAttribute(!isLight ?
+		UJFAttributeSet::GetLightAttackComboAttribute() :
+		UJFAttributeSet::GetHeavyAttackComboAttribute());
+	
+	const float div = (!isLight ? LightAttacks.Num() : HeavyAttacks.Num());
+	const float prog = (base/div);
+	
+	const float opp_base = GetNumericAttribute(isLight ?
+    	UJFAttributeSet::GetLightAttackComboAttribute() :
+    	UJFAttributeSet::GetHeavyAttackComboAttribute());
+	const float opp_div = (!isLight ? LightAttacks.Num() : HeavyAttacks.Num());
+
+	//Calculate New Attack Index
+	const float BaseIndex = prog * opp_div;
+	const int Round = FMath::CeilToInt(BaseIndex);
+	const int IndexClamped = FMath::Clamp(Round, 0, opp_div - 1);
+	const int Final = FMath::Max(IndexClamped, opp_base + 1);
+
+	//Set New Index for Attack
+	SetNumericAttribute(isLight ?
+		UJFAttributeSet::GetLightAttackComboAttribute() :
+		UJFAttributeSet::GetHeavyAttackComboAttribute(),
+		Final
+	);
+
+	/*
+	UKismetSystemLibrary::PrintString(GetWorld(), "Prog   : " + FString::SanitizeFloat(prog));
+	UKismetSystemLibrary::PrintString(GetWorld(), "   Base: " + FString::SanitizeFloat(base));
+	UKismetSystemLibrary::PrintString(GetWorld(), "   Div : " + FString::SanitizeFloat(div));
+	UKismetSystemLibrary::PrintString(GetWorld(), "==================================");
+	UKismetSystemLibrary::PrintString(GetWorld(), "Base Index   : " + FString::SanitizeFloat(BaseIndex));
+	UKismetSystemLibrary::PrintString(GetWorld(), "Round Index  : " + FString::SanitizeFloat(Round));
+	UKismetSystemLibrary::PrintString(GetWorld(), "Index Clamped: " + FString::SanitizeFloat(IndexClamped));
+	UKismetSystemLibrary::PrintString(GetWorld(), "Final        : " + FString::SanitizeFloat(Final));
+	*/
+	
+	return Final;
+}
+
 void AJFCharacter::LightAttack()
 {
 	if(LightAttacks.Num() == 0) return;
 
-	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetLightAttackComboAttribute());
+	int CurrComboNumber = SyncAttacks(true);
 	
 	//Server Func for Light Attack
 	int ComboNumber = CurrComboNumber % LightAttacks.Num();
 
 	AbilitySystemComponent->TryActivateAbilityByClass(LightAttacks[ComboNumber]);
+	LastAttack = "Light";
 }
 
 void AJFCharacter::HeavyAttack()
@@ -440,10 +494,11 @@ void AJFCharacter::HeavyAttack()
 	if(HeavyAttacks.Num() == 0) return;
 	
 	//Server Func for Light Attack
-	int CurrComboNumber = GetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute());
+	int CurrComboNumber = SyncAttacks();
 	
 	//Server Func for Light Attack
 	int ComboNumber = CurrComboNumber % HeavyAttacks.Num();
 
 	AbilitySystemComponent->TryActivateAbilityByClass(HeavyAttacks[ComboNumber]);
+	LastAttack = "Heavy";
 }
