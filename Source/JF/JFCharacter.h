@@ -151,10 +151,12 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	void TickQueuedAttack(float DeltaSeconds);
+
 	FName LastAttack = NAME_None;
 	int SyncAttacks(bool isLight = false);
-	void LightAttack();
-	void HeavyAttack();
+	void LightAttack(bool Queue = true);
+	void HeavyAttack(bool Queue = true);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:

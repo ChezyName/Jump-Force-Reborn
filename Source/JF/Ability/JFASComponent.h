@@ -10,6 +10,8 @@
 
 class UInputAction;
 
+constexpr float ABILITY_QUEUE_LIFETIME_DEFAULT = 0.2f;
+
 USTRUCT()
 struct FAbilityInputBinding
 {
@@ -19,6 +21,32 @@ struct FAbilityInputBinding
 	uint32 OnPressedHandle = 0;
 	uint32 OnReleasedHandle = 0;
 	TArray<FGameplayAbilitySpecHandle> BoundAbilitiesStack;
+};
+
+UENUM()
+enum AbilityType : uint8
+{
+	Light,
+	Heavy,
+	Ability,
+};
+
+USTRUCT(BlueprintType)
+struct FQueuedAbility
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FGameplayAbilitySpecHandle Handle;
+
+	UPROPERTY()
+	bool bWasRemote = true;
+
+	UPROPERTY()
+	float Lifetime = -1;
+	
+	UPROPERTY()
+	TEnumAsByte<AbilityType> Type = Ability;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -33,6 +61,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
@@ -49,8 +78,16 @@ public:
 
 	FGameplayAbilitySpec* FindAbilitySpec(FGameplayAbilitySpecHandle Handle);
 
+	bool TryActivateOrQueueAbility(FGameplayAbilitySpecHandle Handle, bool bAllowRemoteActivation = true);
+	bool TryActivateOrQueueAbilityByClass(TSubclassOf<UGameplayAbility> InAbilityToActivate, bool bAllowRemoteActivation = true);
+	
+	FQueuedAbility& GetNextAbility() {return NextAbility;}
+	
 protected:
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
+
+	UPROPERTY(BlueprintReadOnly)
+	FQueuedAbility NextAbility = {};
 	
 private:
 	bool AbilityDataIsValid(UAbilityData* Data)

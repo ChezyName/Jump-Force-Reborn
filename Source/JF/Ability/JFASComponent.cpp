@@ -224,11 +224,13 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 UJFASComponent::UJFASComponent() : Super()
 {
 	SetIsReplicated(true);
-	SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void UJFASComponent::BeginPlay() {
 	Super::BeginPlay();
+	
+	SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	
 	if(InputComponent == nullptr)
 	{
 		AActor* Owner = GetOwner();
@@ -236,4 +238,57 @@ void UJFASComponent::BeginPlay() {
 			InputComponent = CastChecked<UEnhancedInputComponent>(Owner->InputComponent);
 		}
 	}
+}
+
+void UJFASComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if(NextAbility.Type == Ability && NextAbility.Handle.IsValid() && NextAbility.Lifetime > 0)
+	{
+		NextAbility.Lifetime -= DeltaTime;
+		
+		//Try Ability
+		if(TryActivateAbility(NextAbility.Handle, NextAbility.bWasRemote))
+		{
+			NextAbility.Lifetime = -1;
+			UKismetSystemLibrary::PrintString(GetWorld(),"Ability Was Activated from GAS Buffer of Type: " +
+			FString(NextAbility.Type == Ability ? "Ability" : NextAbility.Type == Light ? "Light" : "Heavy"));
+		}
+	}
+}
+
+bool UJFASComponent::TryActivateOrQueueAbility(FGameplayAbilitySpecHandle Handle, bool bAllowRemoteActivation)
+{
+	const bool bSuccess = TryActivateAbility(Handle, bAllowRemoteActivation);
+
+	if (!bSuccess)
+	{
+		NextAbility = {
+			Handle,
+			bAllowRemoteActivation,
+			ABILITY_QUEUE_LIFETIME_DEFAULT,
+		};
+	}
+
+	return bSuccess;
+}
+
+bool UJFASComponent::TryActivateOrQueueAbilityByClass(TSubclassOf<UGameplayAbility> InAbilityToActivate,
+	bool bAllowRemoteActivation)
+{
+	bool bSuccess = false;
+
+	const UGameplayAbility* const InAbilityCDO = InAbilityToActivate.GetDefaultObject();
+
+	for (const FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+		if (Spec.Ability == InAbilityCDO)
+		{
+			bSuccess |= TryActivateOrQueueAbility(Spec.Handle, bAllowRemoteActivation);
+			break;
+		}
+	}
+
+	return bSuccess;
 }

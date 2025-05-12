@@ -181,11 +181,11 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 		//Light Attack
 		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered,
-			this, &AJFCharacter::LightAttack);
+			this, &AJFCharacter::LightAttack, true);
 
 		//Heavy Attack
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered,
-			this, &AJFCharacter::HeavyAttack);
+			this, &AJFCharacter::HeavyAttack, true);
 	}
 	else
 	{
@@ -384,6 +384,7 @@ void AJFCharacter::BeginPlay()
 void AJFCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if(IsLocallyControlled()) TickQueuedAttack(DeltaSeconds);
 
 	if(HasAuthority())
 	{
@@ -455,13 +456,6 @@ int AJFCharacter::SyncAttacks(bool isLight)
 	const int IndexClamped = FMath::Clamp(Round, 0, opp_div - 1);
 	const int Final = FMath::Max(IndexClamped, opp_base + 1);
 
-	//Set New Index for Attack
-	SetNumericAttribute(isLight ?
-		UJFAttributeSet::GetLightAttackComboAttribute() :
-		UJFAttributeSet::GetHeavyAttackComboAttribute(),
-		Final
-	);
-
 	/*
 	UKismetSystemLibrary::PrintString(GetWorld(), "Prog   : " + FString::SanitizeFloat(prog));
 	UKismetSystemLibrary::PrintString(GetWorld(), "   Base: " + FString::SanitizeFloat(base));
@@ -476,29 +470,106 @@ int AJFCharacter::SyncAttacks(bool isLight)
 	return Final;
 }
 
-void AJFCharacter::LightAttack()
+void AJFCharacter::LightAttack(bool Queue)
 {
 	if(LightAttacks.Num() == 0) return;
+	if(AbilitySystemComponent == nullptr) return;
 
-	int CurrComboNumber = SyncAttacks(true);
+	const int CurrComboNumber = SyncAttacks(true);
 	
 	//Server Func for Light Attack
-	int ComboNumber = CurrComboNumber % LightAttacks.Num();
+	const int ComboNumber = CurrComboNumber % LightAttacks.Num();
 
-	AbilitySystemComponent->TryActivateAbilityByClass(LightAttacks[ComboNumber]);
-	LastAttack = "Light";
+	//Call Ability, Do Not Queue
+	if(!Queue)
+	{
+		if(AbilitySystemComponent->TryActivateAbilityByClass(LightAttacks[ComboNumber]))
+		{
+			SetNumericAttribute(
+				UJFAttributeSet::GetLightAttackComboAttribute(),
+				ComboNumber
+			);
+		
+			LastAttack = "Light";
+					
+			FQueuedAbility& Attack = AbilitySystemComponent->GetNextAbility();
+			Attack.Lifetime = -1;
+		}
+		return;
+	}
+
+	if(!AbilitySystemComponent->TryActivateOrQueueAbilityByClass(LightAttacks[ComboNumber]))
+	{
+		AbilitySystemComponent->GetNextAbility().Type = Light;
+		UKismetSystemLibrary::PrintString(GetWorld(), "Light Attack Queued");
+	}
+	else
+	{
+		SetNumericAttribute(
+			UJFAttributeSet::GetLightAttackComboAttribute(),
+			ComboNumber
+		);
+		
+		LastAttack = "Light";
+	}
 }
 
-void AJFCharacter::HeavyAttack()
+void AJFCharacter::HeavyAttack(bool Queue)
 {
 	if(HeavyAttacks.Num() == 0) return;
+	if(AbilitySystemComponent == nullptr) return;
 	
 	//Server Func for Light Attack
-	int CurrComboNumber = SyncAttacks();
+	const int CurrComboNumber = SyncAttacks();
 	
 	//Server Func for Light Attack
-	int ComboNumber = CurrComboNumber % HeavyAttacks.Num();
+	const int ComboNumber = CurrComboNumber % HeavyAttacks.Num();
 
-	AbilitySystemComponent->TryActivateAbilityByClass(HeavyAttacks[ComboNumber]);
-	LastAttack = "Heavy";
+	//Call Ability, Do Not Queue
+	if(!Queue)
+	{
+		if(AbilitySystemComponent->TryActivateAbilityByClass(HeavyAttacks[ComboNumber]))
+		{
+			SetNumericAttribute(
+				UJFAttributeSet::GetHeavyAttackComboAttribute(),
+				ComboNumber
+			);
+		
+			LastAttack = "Heavy";
+			
+			FQueuedAbility& Attack = AbilitySystemComponent->GetNextAbility();
+			Attack.Lifetime = -1;
+		}
+		return;
+	}
+
+	if(!AbilitySystemComponent->TryActivateOrQueueAbilityByClass(HeavyAttacks[ComboNumber]))
+	{
+		AbilitySystemComponent->GetNextAbility().Type = Heavy;
+		UKismetSystemLibrary::PrintString(GetWorld(), "Heavy Attack Queued");
+	}
+	else
+	{
+		SetNumericAttribute(
+			UJFAttributeSet::GetHeavyAttackComboAttribute(),
+			ComboNumber
+		);
+		
+		LastAttack = "Heavy";
+	}
+}
+
+
+void AJFCharacter::TickQueuedAttack(float DeltaSeconds)
+{
+	//Only Tick if Attack Light/Heavy
+	if(AbilitySystemComponent == nullptr) return;
+	FQueuedAbility& Attack = AbilitySystemComponent->GetNextAbility();
+	if(Attack.Type == Ability || Attack.Lifetime <= 0) return;
+
+	//Tick Attack
+	Attack.Lifetime -= DeltaSeconds;
+	
+	if(Attack.Type == Light) LightAttack(false);
+	if(Attack.Type == Heavy) HeavyAttack(false);
 }
