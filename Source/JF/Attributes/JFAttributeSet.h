@@ -53,6 +53,11 @@ protected:
 	{
 		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, ComboResetTime, OldAttackReset)
 	}
+	UFUNCTION()
+	void onMeterChanged(const FGameplayAttributeData& OldMeter)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, Meter, OldMeter)
+	}
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
 	FGameplayAttributeData Health;
@@ -71,6 +76,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onComboResetChanged)
 	FGameplayAttributeData ComboResetTime;
+
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onMeterChanged)
+	FGameplayAttributeData Meter;
 	
 
 public:
@@ -79,7 +87,8 @@ public:
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MovementSpeed);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, LightAttackCombo);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
-	ATTRIBUTE_ACCESSOR(UJFAttributeSet, ComboResetTime);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, ComboResetTime)
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, Meter);
 
 	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;

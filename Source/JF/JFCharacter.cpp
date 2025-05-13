@@ -121,6 +121,15 @@ AJFCharacter::AJFCharacter()
 	{
 		HeavyAttackAction = HeavyAttackActionFinder.Object;
 	}
+
+	//Meter Charge
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	MeterChargeActionFinder(TEXT("InputAction'/Game/_CORE/Input/Actions/IA_Meter_Charge.IA_Meter_Charge'"));
+
+	if (MeterChargeActionFinder.Succeeded())
+	{
+		MeterChargeAction = MeterChargeActionFinder.Object;
+	}
 }
 
 void AJFCharacter::PossessedBy(AController* NewController)
@@ -186,6 +195,10 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		//Heavy Attack
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered,
 			this, &AJFCharacter::HeavyAttack, true);
+
+		//Meter Charge
+		EnhancedInputComponent->BindAction(MeterChargeAction, ETriggerEvent::Triggered, this, &AJFCharacter::SetMeter, true);
+		EnhancedInputComponent->BindAction(MeterChargeAction, ETriggerEvent::Completed, this, &AJFCharacter::SetMeter, false);
 	}
 	else
 	{
@@ -377,6 +390,15 @@ void AJFCharacter::BeginPlay()
 	}
 
 	//InitAbilities();
+
+	//Init Base Attributes
+	if(HasAuthority())
+	{
+		SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), MaxHealth);
+		SetNumericAttribute(UJFAttributeSet::GetMaxHealthAttribute(), MaxHealth);
+
+		SetNumericAttribute(UJFAttributeSet::GetMovementSpeedAttribute(), MovementSpeed);
+	}
 	
 	Super::BeginPlay();
 }
@@ -388,6 +410,8 @@ void AJFCharacter::Tick(float DeltaSeconds)
 
 	if(HasAuthority())
 	{
+		TickMeter(DeltaSeconds);
+		
 		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
 		bool hasAttackTags = false;
 
@@ -418,6 +442,37 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				SetNumericAttribute(UJFAttributeSet::GetHeavyAttackComboAttribute(), 0.f);
 				LastAttack = NAME_None;
 			}
+		}
+	}
+}
+
+void AJFCharacter::SetMeter_Implementation(bool isActive)
+{
+	isTryingMeterCharge = isActive;
+}
+
+bool AJFCharacter::isChargingMeter()
+{
+	if(!GetAbilitySystemComponent()) return false;
+	
+	FGameplayTagContainer TagsToCheck;
+	TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
+	return GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck);
+}
+
+void AJFCharacter::TickMeter(float DeltaSeconds)
+{
+	//Tick The Meter, Assume is Server
+	if(isTryingMeterCharge && isChargingMeter())
+	{
+		//Try Meter Charge
+
+		if(isChargingMeter())
+		{
+			const float CurrMeter = 0.f;
+
+			SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
+				FMath::Clamp(CurrMeter + DeltaSeconds, 0.f, MAX_METER));
 		}
 	}
 }

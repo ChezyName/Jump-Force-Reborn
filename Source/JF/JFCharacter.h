@@ -19,6 +19,9 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+//Each bar is 100, 6x = 600
+constexpr float MAX_METER = 600.f;
+
 USTRUCT()
 struct FAbilityInputHandler
 {
@@ -64,6 +67,15 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FVector GetCameraForwardVector();
+
+	//Default Attributes
+	//Players Max Health
+	UPROPERTY(EditDefaultsOnly, Category="Character|Defaults")
+	float MaxHealth = 1500;
+	
+	//Players Movement Speed
+	UPROPERTY(EditDefaultsOnly, Category="Character|Defaults", meta=(Units="cm/s"))
+	float MovementSpeed = 500;
 private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -91,11 +103,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* HeavyAttackAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MeterChargeAction;
+
 	void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
 	UPROPERTY(Replicated)
 	FVector2D PlayerInputVector;
+
+	UFUNCTION(BlueprintPure)
+	bool isChargingMeter();
 
 public:
 	AJFCharacter();
@@ -138,7 +156,13 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	UFUNCTION(Server, Reliable)
+	void SetMeter(bool isActive);
+
 protected:
+	UPROPERTY(Replicated)
+	bool isTryingMeterCharge = false;
+	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	UJFAttributeSet* CoreAttributes;
 
@@ -152,6 +176,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void TickQueuedAttack(float DeltaSeconds);
+
+	void TickMeter(float DeltaSeconds);
 
 	FName LastAttack = NAME_None;
 	int SyncAttacks(bool isLight = false);

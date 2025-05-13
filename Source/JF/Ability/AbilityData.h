@@ -19,14 +19,11 @@ enum class EAbilityInputID : uint8
 	HeavyAttack		UMETA(DisplayName = "Heavy Attack"),	// Right Trigger
 	Dodge			UMETA(DisplayName = "Dodge"),			// A
 
-	Ability1		UMETA(DisplayName = "Ability1"),		//Left Bumper + X
-	Ability2		UMETA(DisplayName = "Ability2"),		//Left Bumper + Y
-	Ability3		UMETA(DisplayName = "Ability3"),		//Left Bumper + B
-	Ability4		UMETA(DisplayName = "Ability4"),		//Right Bumper + X
-	Ability5		UMETA(DisplayName = "Ability5"),		//Right Bumper + Y
-	Ability6		UMETA(DisplayName = "Ability6"),		//Right Bumper + B
+	Ability1		UMETA(DisplayName = "Ability1"),		// X
+	Ability2		UMETA(DisplayName = "Ability2"),		// Y
+	Ability3		UMETA(DisplayName = "Ability3"),		// B
 
-	Ultimate		UMETA(DisplayName = "Ultimate"),		//Both Bumpers
+	Ultimate		UMETA(DisplayName = "Ultimate"),		// Both Bumpers
 };
 
 /**
