@@ -302,6 +302,7 @@ void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AJFCharacter, PlayerInputVector);
+	DOREPLIFETIME(AJFCharacter, isTryingMeterCharge);
 }
 
 /*
@@ -408,6 +409,8 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if(IsLocallyControlled()) TickQueuedAttack(DeltaSeconds);
 
+	UKismetSystemLibrary::PrintString(GetWorld(), FString::SanitizeFloat(GetMeterFull()));
+
 	if(HasAuthority())
 	{
 		TickMeter(DeltaSeconds);
@@ -457,23 +460,20 @@ bool AJFCharacter::isChargingMeter()
 	
 	FGameplayTagContainer TagsToCheck;
 	TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
-	return GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck);
+	return !GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck) &&
+		isTryingMeterCharge;
 }
 
 void AJFCharacter::TickMeter(float DeltaSeconds)
 {
 	//Tick The Meter, Assume is Server
-	if(isTryingMeterCharge && isChargingMeter())
+	if(isChargingMeter())
 	{
 		//Try Meter Charge
+		const float CurrMeter = GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
 
-		if(isChargingMeter())
-		{
-			const float CurrMeter = 0.f;
-
-			SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
-				FMath::Clamp(CurrMeter + DeltaSeconds, 0.f, MAX_METER));
-		}
+		SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
+			FMath::Clamp(CurrMeter + METER_PER_SECOND*DeltaSeconds, 0.f, MAX_METER));
 	}
 }
 

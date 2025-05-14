@@ -21,6 +21,7 @@ struct FInputActionValue;
 
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
+constexpr float METER_PER_SECOND = 100.f/1.5f;
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -67,6 +68,22 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FVector GetCameraForwardVector();
+	
+	UFUNCTION(BlueprintPure)
+	bool isChargingMeter();
+
+	//Gets Meter Entire Value (ie=600 for max meter)
+	UFUNCTION(BlueprintPure)
+    float GetMeterFull()
+	{
+		return GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
+	}
+
+	UFUNCTION(BlueprintPure)
+	int GetMeter()
+	{
+		return FMath::Floor(GetMeterFull());
+	}
 
 	//Default Attributes
 	//Players Max Health
@@ -111,9 +128,6 @@ private:
 
 	UPROPERTY(Replicated)
 	FVector2D PlayerInputVector;
-
-	UFUNCTION(BlueprintPure)
-	bool isChargingMeter();
 
 public:
 	AJFCharacter();
