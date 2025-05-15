@@ -14,6 +14,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "InputAction.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "InputMappingContext.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -71,6 +73,11 @@ AJFCharacter::AJFCharacter()
 	AbilitySystemComponent->SetIsReplicated(true);
 	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
 	AbilitySystemComponent->AddAttributeSetSubobject(CoreAttributes);
+
+	MeterChargeFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MeterChargeFX"));
+	MeterChargeFX->SetAutoActivate(false);
+	MeterChargeFX->SetupAttachment(GetMesh());
+	MeterChargeFX->SetRelativeLocation(FVector::ZeroVector);
 
 	//Load Dash Ability
 	static ConstructorHelpers::FObjectFinder<UAbilityData>
@@ -130,6 +137,15 @@ AJFCharacter::AJFCharacter()
 	{
 		MeterChargeAction = MeterChargeActionFinder.Object;
 	}
+
+	// Load Niagara System asset
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem>
+		MeterChargeFXFinder(TEXT("NiagaraSystem'/Game/Characters/_Core/Meter/MeterCharge.MeterCharge'"));
+	if (MeterChargeFX && MeterChargeFXFinder.Succeeded())
+	{
+		MeterChargeFX->SetAsset(MeterChargeFXFinder.Object.Get());
+	}
+
 }
 
 void AJFCharacter::PossessedBy(AController* NewController)
@@ -409,7 +425,9 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if(IsLocallyControlled()) TickQueuedAttack(DeltaSeconds);
 
-	UKismetSystemLibrary::PrintString(GetWorld(), FString::SanitizeFloat(GetMeterFull()));
+	//VFX & Cant Move During Meter Charge
+	MeterChargeFX->SetActive(isChargingMeter());
+	GetMovementComponent()->SetActive(!isChargingMeter());
 
 	if(HasAuthority())
 	{
@@ -458,10 +476,8 @@ bool AJFCharacter::isChargingMeter()
 {
 	if(!GetAbilitySystemComponent()) return false;
 	
-	FGameplayTagContainer TagsToCheck;
-	TagsToCheck.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
-	return !GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(TagsToCheck) &&
-		isTryingMeterCharge;
+	return !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
+	&& isTryingMeterCharge;
 }
 
 void AJFCharacter::TickMeter(float DeltaSeconds)

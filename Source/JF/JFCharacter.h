@@ -41,6 +41,8 @@ UCLASS(config=Game)
 class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
+protected:
+	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
@@ -130,6 +132,10 @@ private:
 	FVector2D PlayerInputVector;
 
 public:
+	/** Meter Charge FX */
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "FX", meta = (AllowPrivateAccess = "true"))
+	class UNiagaraComponent* MeterChargeFX;
+	
 	AJFCharacter();
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override

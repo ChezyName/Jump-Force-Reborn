@@ -9,6 +9,8 @@ public class JF : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
-			"EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks"});
+			"EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks",
+			"Niagara"
+		});
 	}
 }
