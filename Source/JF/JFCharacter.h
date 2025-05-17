@@ -43,6 +43,7 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 	GENERATED_BODY()
 protected:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
+	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
 public:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
@@ -90,6 +91,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetMeterProgress()
 	{
+		if(GetMeterText() == 6) return 100.f;
 		return FMath::Fmod(GetMeter(), 100.0f);
 	}
 

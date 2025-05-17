@@ -281,7 +281,8 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	UpdatePlayerMovementVector(MovementVector);
 
-	if (Controller != nullptr && !isChargingMeter())
+	if (Controller != nullptr && !isChargingMeter()
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
