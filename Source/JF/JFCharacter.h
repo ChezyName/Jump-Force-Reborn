@@ -21,7 +21,7 @@ struct FInputActionValue;
 
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
-constexpr float METER_PER_SECOND = 100.f/1.5f;
+constexpr float METER_PER_SECOND = 100.f/2.5f;
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -76,15 +76,21 @@ public:
 
 	//Gets Meter Entire Value (ie=600 for max meter)
 	UFUNCTION(BlueprintPure)
-    float GetMeterFull()
+    float GetMeter()
 	{
 		return GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
 	}
 
 	UFUNCTION(BlueprintPure)
-	int GetMeter()
+	int GetMeterText()
 	{
-		return FMath::Floor(GetMeterFull());
+		return FMath::Floor(GetMeter()/100.f);
+	}
+
+	UFUNCTION(BlueprintPure)
+	float GetMeterProgress()
+	{
+		return FMath::Fmod(GetMeter(), 100.0f);
 	}
 
 	//Default Attributes
@@ -133,7 +139,7 @@ private:
 
 public:
 	/** Meter Charge FX */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "FX", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
 	class UNiagaraComponent* MeterChargeFX;
 	
 	AJFCharacter();

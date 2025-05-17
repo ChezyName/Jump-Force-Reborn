@@ -75,9 +75,8 @@ AJFCharacter::AJFCharacter()
 	AbilitySystemComponent->AddAttributeSetSubobject(CoreAttributes);
 
 	MeterChargeFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MeterChargeFX"));
+	MeterChargeFX->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	MeterChargeFX->SetAutoActivate(false);
-	MeterChargeFX->SetupAttachment(GetMesh());
-	MeterChargeFX->SetRelativeLocation(FVector::ZeroVector);
 
 	//Load Dash Ability
 	static ConstructorHelpers::FObjectFinder<UAbilityData>
@@ -138,14 +137,13 @@ AJFCharacter::AJFCharacter()
 		MeterChargeAction = MeterChargeActionFinder.Object;
 	}
 
-	// Load Niagara System asset
+	// Load Niagara System asset - Meter Charge FX
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem>
 		MeterChargeFXFinder(TEXT("NiagaraSystem'/Game/Characters/_Core/Meter/MeterCharge.MeterCharge'"));
 	if (MeterChargeFX && MeterChargeFXFinder.Succeeded())
 	{
 		MeterChargeFX->SetAsset(MeterChargeFXFinder.Object.Get());
 	}
-
 }
 
 void AJFCharacter::PossessedBy(AController* NewController)
