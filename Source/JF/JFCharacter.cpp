@@ -414,6 +414,8 @@ void AJFCharacter::BeginPlay()
 		SetNumericAttribute(UJFAttributeSet::GetMaxHealthAttribute(), MaxHealth);
 
 		SetNumericAttribute(UJFAttributeSet::GetMovementSpeedAttribute(), MovementSpeed);
+
+		SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), MAX_DASH_CHARGE);
 	}
 	
 	Super::BeginPlay();
@@ -463,6 +465,12 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				LastAttack = NAME_None;
 			}
 		}
+
+		//Tick Dash Charge
+		float cDashCharge = GetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute());
+		cDashCharge += DeltaSeconds * DASH_CHARGE_PER_SECOND;
+		cDashCharge = FMath::Clamp(cDashCharge, 0.f, MAX_DASH_CHARGE);
+		SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), cDashCharge);
 	}
 }
 

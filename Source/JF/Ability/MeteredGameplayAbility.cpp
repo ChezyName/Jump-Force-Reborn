@@ -9,8 +9,6 @@
 bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	
-	
 	AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor);
 	if(Char)
 	{
@@ -20,9 +18,9 @@ bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
 	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
 }
 
-void UMeteredGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
+bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	bool bReplicateEndAbility, bool bWasCancelled)
+	FGameplayTagContainer* OptionalRelevantTags)
 {
 	//Take Meter from Character
 	AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor);
@@ -33,7 +31,9 @@ void UMeteredGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle
 		
 		Char->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
 			MeterFull);
+
+		return true;
 	}
 	
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	return Super::CommitAbility(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags);
 }

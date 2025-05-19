@@ -23,6 +23,9 @@ struct FInputActionValue;
 constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/2.5f;
 
+constexpr float MAX_DASH_CHARGE = 400.f;
+constexpr float DASH_CHARGE_PER_SECOND = 100.f/6.f;
+
 USTRUCT()
 struct FAbilityInputHandler
 {
@@ -91,8 +94,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetMeterProgress()
 	{
-		if(GetMeterText() == 6) return 100.f;
-		return FMath::Fmod(GetMeter(), 100.0f);
+		const float ReturnVal = FMath::Fmod(GetMeter(), 100.0f);
+		if(GetMeterText() != 0 && ReturnVal == 0) return 100.f;
+		return ReturnVal;
 	}
 
 	//Default Attributes

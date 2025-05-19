@@ -4,20 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "MeteredGameplayAbility.generated.h"
+#include "DashGameplayAbility.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class JF_API UMeteredGameplayAbility : public UGameplayAbility
+class JF_API UDashGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual bool CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FGameplayTagContainer* OptionalRelevantTags) override;
 	
-public:
-	//Will Cost Full Bar (1 - 6)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6))
-	int AbilityCost = 1;
 };

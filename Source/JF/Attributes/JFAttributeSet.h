@@ -58,6 +58,11 @@ protected:
 	{
 		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, Meter, OldMeter)
 	}
+	UFUNCTION()
+	void onDashChargeChanged(const FGameplayAttributeData& OldDashCharge)
+	{
+		GAMEPLAYATTRIBUTE_REPNOTIFY(UJFAttributeSet, DashCharge, OldDashCharge)
+	}
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
 	FGameplayAttributeData Health;
@@ -80,7 +85,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onMeterChanged)
 	FGameplayAttributeData Meter;
 	
-
+	UPROPERTY(BlueprintReadOnly, Category="Character | Attacks", Replicated, ReplicatedUsing=onDashChargeChanged)
+	FGameplayAttributeData DashCharge;
 public:
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, Health);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, MaxHealth);
@@ -89,6 +95,7 @@ public:
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, HeavyAttackCombo);
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, ComboResetTime)
 	ATTRIBUTE_ACCESSOR(UJFAttributeSet, Meter);
+	ATTRIBUTE_ACCESSOR(UJFAttributeSet, DashCharge);
 
 	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;

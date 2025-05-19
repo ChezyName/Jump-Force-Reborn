@@ -29,4 +29,7 @@ void UJFAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(UJFAttributeSet, HeavyAttackCombo);
 	
 	DOREPLIFETIME(UJFAttributeSet, ComboResetTime);
+
+	DOREPLIFETIME(UJFAttributeSet, Meter);
+	DOREPLIFETIME(UJFAttributeSet, DashCharge);
 }
