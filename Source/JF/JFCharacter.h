@@ -9,6 +9,7 @@
 #include "Ability/AbilityData.h"
 #include "Ability/JFASComponent.h"
 #include "Attributes/JFAttributeSet.h"
+#include "Components/ProgressBar.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "JFCharacter.generated.h"
@@ -24,7 +25,7 @@ constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/2.5f;
 
 constexpr float MAX_DASH_CHARGE = 400.f;
-constexpr float DASH_CHARGE_PER_SECOND = 100.f/6.f;
+constexpr float DASH_CHARGE_PER_SECOND = 100.f/3.f;
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -97,6 +98,31 @@ public:
 		const float ReturnVal = FMath::Fmod(GetMeter(), 100.0f);
 		if(GetMeterText() != 0 && ReturnVal == 0) return 100.f;
 		return ReturnVal;
+	}
+
+	UFUNCTION(BlueprintPure)
+	float GetDashCharges()
+	{
+		return GetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute());
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetDashProgressBars(TArray<UProgressBar*> ProgressBars)
+	{
+		const float Charges = GetDashCharges();
+		const float Split = ProgressBars.Num();
+
+		if(Split == 0) return;
+
+		float cCharge = Charges;
+		for(UProgressBar* Bar : ProgressBars)
+		{
+			const float BarCharge =
+				FMath::Clamp(cCharge, 0.f, 100.f);
+
+			if(Bar) Bar->SetPercent(BarCharge/100.f);
+			cCharge -= BarCharge;
+		}
 	}
 
 	//Default Attributes
