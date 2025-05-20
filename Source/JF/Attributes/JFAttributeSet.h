@@ -67,7 +67,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
 	FGameplayAttributeData Health;
 	
-	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onHealthChanged)
+	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", ReplicatedUsing=onMaxHealthChanged)
 	FGameplayAttributeData MaxHealth;
 
 	UPROPERTY(BlueprintReadOnly, Category="Character | Health & Speed", Replicated, ReplicatedUsing=onSpeedChanged)

@@ -64,35 +64,35 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character|Attacks")
 	TArray<TSubclassOf<UGameplayAbility>> HeavyAttacks;
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	FVector2D GetPlayerInputVector() {return PlayerInputVector;}
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	FVector GetMovementVector();
 	
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	FVector GetCameraRightVector();
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	FVector GetCameraForwardVector();
 	
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	bool isChargingMeter();
 
 	//Gets Meter Entire Value (ie=600 for max meter)
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
     float GetMeter()
 	{
 		return GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
 	}
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	int GetMeterText()
 	{
 		return FMath::Floor(GetMeter()/100.f);
 	}
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category=UI)
 	float GetMeterProgress()
 	{
 		const float ReturnVal = FMath::Fmod(GetMeter(), 100.0f);
@@ -100,13 +100,32 @@ public:
 		return ReturnVal;
 	}
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintCallable, Category=UI)
+	void SetMeterProgress(TArray<UProgressBar*> ProgressBars)
+	{
+		const float MeterTotal = GetMeter();
+		const float Split = ProgressBars.Num();
+
+		if(Split == 0) return;
+
+		float cMeter = MeterTotal;
+		for(UProgressBar* Bar : ProgressBars)
+		{
+			const float MeterCharge =
+				FMath::Clamp(cMeter, 0.f, 100.f);
+
+			if(Bar) Bar->SetPercent(MeterCharge/100.f);
+			cMeter -= MeterCharge;
+		}
+	}
+
+	UFUNCTION(BlueprintPure, Category=UI)
 	float GetDashCharges()
 	{
 		return GetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute());
 	}
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category=UI)
 	void SetDashProgressBars(TArray<UProgressBar*> ProgressBars)
 	{
 		const float Charges = GetDashCharges();
@@ -123,6 +142,24 @@ public:
 			if(Bar) Bar->SetPercent(BarCharge/100.f);
 			cCharge -= BarCharge;
 		}
+	}
+
+	//a value between 0 and 1
+	UFUNCTION(BlueprintPure, Category=UI)
+	float GetHealthProgress()
+	{
+		return
+			GetNumericAttribute(UJFAttributeSet::GetHealthAttribute()) /
+			GetNumericAttribute(UJFAttributeSet::GetMaxHealthAttribute());
+	}
+
+	UFUNCTION(BlueprintPure, Category=UI)
+	FString GetHealthText()
+	{
+		return FString::FromInt(FMath::CeilToInt(
+			GetNumericAttribute(UJFAttributeSet::GetHealthAttribute()
+			)
+		));
 	}
 
 	//Default Attributes

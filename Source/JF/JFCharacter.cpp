@@ -410,8 +410,9 @@ void AJFCharacter::BeginPlay()
 	//Init Base Attributes
 	if(HasAuthority())
 	{
-		SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), MaxHealth);
+		//Internal Clamp Filter will set value to zero if MaxHealth is not init'd first
 		SetNumericAttribute(UJFAttributeSet::GetMaxHealthAttribute(), MaxHealth);
+		SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), MaxHealth);
 
 		SetNumericAttribute(UJFAttributeSet::GetMovementSpeedAttribute(), MovementSpeed);
 
