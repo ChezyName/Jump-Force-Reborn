@@ -24,6 +24,10 @@ bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Han
 {
 	//Take Meter from Character
 	AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor);
+	
+	Character = Char;
+	if(!Character->IsValidLowLevel()) CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+	
 	if(Char)
 	{
 		float MeterFull = Char->GetMeter();
@@ -36,4 +40,47 @@ bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Han
 	}
 	
 	return Super::CommitAbility(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags);
+}
+
+void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	const FGameplayEventData* TriggerEventData)
+{
+	if(!Character->IsValidLowLevel())
+	{
+		Character = Cast<AJFCharacter>(ActorInfo->OwnerActor);
+	}
+	
+	if(MeterPerSecond > 0)
+	{
+		TickTask = UHitboxTask::CreateHitboxTicker(this);
+		TickTask->OnTick.AddDynamic(this, &UMeteredGameplayAbility::onTick);
+		TickTask->ReadyForActivation();
+
+		LastTime = GetWorld()->GetTimeSeconds();
+	}
+
+	K2_CommitAbility();
+	
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
+void UMeteredGameplayAbility::onTick()
+{
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	DeltaTime = CurrentTime - LastTime;
+	LastTime = CurrentTime;
+
+	if(Character)
+	{
+		//Take Meter
+		float Meter = Character->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
+		if(Meter <= 0) K2_EndAbility();
+
+		Meter -= DeltaTime * MeterPerSecond;
+
+		Character->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), Meter);
+	
+		//UKismetSystemLibrary::PrintString(GetWorld(), "Ability - Tick");
+	}
 }

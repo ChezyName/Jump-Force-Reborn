@@ -143,12 +143,11 @@ void UJFASComponent::OnAbilityInputPressed(UInputAction* InputAction)
 {
 	using namespace EnhancedInputAbilitySystem_Impl;
 
-	UKismetSystemLibrary::PrintString(GetWorld(), "Pressed Ability Key");
-
 	FAbilityInputBinding* FoundBinding = MappedAbilities.Find(InputAction);
 	if (FoundBinding && ensure(FoundBinding->InputID != InvalidInputID))
 	{
 		AbilityLocalInputPressed(FoundBinding->InputID);
+		AbilityPressedEvent.Broadcast();
 	}
 }
 
@@ -156,13 +155,12 @@ void UJFASComponent::OnAbilityInputReleased(UInputAction* InputAction)
 {
 	using namespace EnhancedInputAbilitySystem_Impl;
 
-	UKismetSystemLibrary::PrintString(GetWorld(), "Released Ability Key");
-
 	FAbilityInputBinding* FoundBinding = MappedAbilities.Find(InputAction);
 	if (FoundBinding && ensure(FoundBinding->InputID != InvalidInputID))
 	{
 				
 		AbilityLocalInputReleased(FoundBinding->InputID);
+		AbilityReleasedEvent.Broadcast();
 	}
 }
 

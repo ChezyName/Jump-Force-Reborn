@@ -18,13 +18,13 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHitboxTick OnTick;
 
-	float Interval;
+	float Interval = KINDA_SMALL_NUMBER;
 	FTimerHandle TickTimerHandle;
 
 	UPROPERTY()
 	UGameplayAbility* ParentAbility;
 
-	static UHitboxTask* CreateHitboxTicker(UGameplayAbility* OwningAbility, float TickInterval = 1.f/60.f);
+	static UHitboxTask* CreateHitboxTicker(UGameplayAbility* OwningAbility, float TickInterval = KINDA_SMALL_NUMBER);
 
 	virtual void Activate() override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;

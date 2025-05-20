@@ -58,6 +58,13 @@ public:
 	// Sets default values for this component's properties
 	UJFASComponent();
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAbilityInput);
+
+	UPROPERTY(BlueprintAssignable, Category=Input)
+	FAbilityInput AbilityPressedEvent;
+	UPROPERTY(BlueprintAssignable, Category=Input)
+	FAbilityInput AbilityReleasedEvent;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
