@@ -42,6 +42,8 @@ void UGameplayAbility_JFAttack::onTick()
 	{
 		TickHitbox(Hitboxes[i]);
 	}
+
+	OnTickEvent();
 }
 
 void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color, bool Display)

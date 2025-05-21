@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "JF/JFCharacter.h"
+#include "JF/Attacks/GameplayAbility_JFAttack.h"
 #include "JF/Attacks/HitboxTask.h"
 #include "MeteredGameplayAbility.generated.h"
 
@@ -12,13 +13,14 @@
  * 
  */
 UCLASS()
-class JF_API UMeteredGameplayAbility : public UGameplayAbility
+class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 {
 	GENERATED_BODY()
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual bool CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FGameplayTagContainer* OptionalRelevantTags) override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 	UPROPERTY()
 	UHitboxTask* TickTask;
@@ -29,8 +31,10 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility
 	UPROPERTY()
 	AJFCharacter* Character;
 
+	virtual void onTick() override;
+
 	UFUNCTION()
-	void onTick();
+	void onKeyReleased() {isKeyHeld = false;}
 public:
 	//Will Cost Full Bar (1 - 6)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6))
@@ -39,6 +43,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600))
 	float MeterPerSecond = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool ForceEndOnMeterZero = true;
+
 	UFUNCTION(BlueprintPure)
 	AJFCharacter* GetCharacter() {return Character;}
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isKeyHeld = false;
 };

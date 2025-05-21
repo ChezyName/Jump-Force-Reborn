@@ -73,15 +73,16 @@ private:
 		if(Hitboxes.Num() == 0) return 0;
 		return Hitboxes.Last()->HitboxID + 1;
 	}
-
+protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	
-	UPROPERTY()
-	UHitboxTask* HitboxTask;
 
 	UFUNCTION()
-	void onTick();
+	virtual void onTick();
+private:
+	UPROPERTY()
+	UHitboxTask* HitboxTask;
+	
 	UFUNCTION()
 	void TickHitbox(UHitbox* Hitbox);
 	
@@ -94,6 +95,9 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = Hitbox, DisplayName = "Hitbox Hit", meta=(ScriptName = "HitboxHit"))
 	void OnHitboxHit(UHitbox* Hitbox);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Tick, DisplayName = "On Tick", meta=(ScriptName = "OnTick"))
+	void OnTickEvent();
 	
 protected:
 	/*

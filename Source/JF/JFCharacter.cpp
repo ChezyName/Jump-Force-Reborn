@@ -417,6 +417,9 @@ void AJFCharacter::BeginPlay()
 		SetNumericAttribute(UJFAttributeSet::GetMovementSpeedAttribute(), MovementSpeed);
 
 		SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), MAX_DASH_CHARGE);
+
+		//DEBUG ONLY
+		SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), MAX_METER);
 	}
 	
 	Super::BeginPlay();
