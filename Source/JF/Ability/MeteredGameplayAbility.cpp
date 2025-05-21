@@ -91,7 +91,7 @@ void UMeteredGameplayAbility::onTick()
 		Meter = FMath::Clamp(Meter, 0, MAX_METER);
 
 		Character->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), Meter);
-	
-		//UKismetSystemLibrary::PrintString(GetWorld(), "Ability - Tick");
 	}
+
+	Super::onTick();
 }

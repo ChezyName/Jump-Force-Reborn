@@ -90,6 +90,7 @@ void UAbilityTask_PlayMontageAndWaitWithNotify::ActivateOnTarget(AActor* Actor)
 				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, MontageToPlay);
 
 				AnimInstance->OnPlayMontageNotifyBegin.AddDynamic(this, &UAbilityTask_PlayMontageAndWaitWithNotify::OnNotifyBegin_FUNC);
+				AnimInstance->OnPlayMontageNotifyEnd.AddDynamic(this, &UAbilityTask_PlayMontageAndWaitWithNotify::OnNotifyEnd_FUNC);
 
 				ACharacter* Character = Cast<ACharacter>(GetAvatarActor());
 				if (Character && (Character->GetLocalRole() == ROLE_Authority ||
