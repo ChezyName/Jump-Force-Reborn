@@ -3,6 +3,7 @@
 
 #include "JFASComponent.h"
 
+#include "AbilitySystemLog.h"
 #include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -205,7 +206,7 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnPressedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Started, this, &UJFASComponent::OnAbilityInputPressed, InputAction).GetHandle();
 
-			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 
 		// Released event
@@ -213,7 +214,7 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 		{
 			AbilityInputBinding.OnReleasedHandle = InputComponent->BindAction(InputAction, ETriggerEvent::Completed, this, &UJFASComponent::OnAbilityInputReleased, InputAction).GetHandle();
 
-			UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
+			//UKismetSystemLibrary::PrintString(GetWorld(), "Bound Input > On Presesd Handle", true,true,FLinearColor::Red,30);
 		}
 	}
 	//else UKismetSystemLibrary::PrintString(GetWorld(), "InputComponent is Invalid...", true,true,FLinearColor::Red,30);
