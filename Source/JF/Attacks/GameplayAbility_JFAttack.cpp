@@ -13,6 +13,21 @@
 UHitbox::UHitbox() : Super() {}
 UHitbox::UHitbox(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
 
+UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
+{
+	//Default Modes
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	bReplicateInputDirectly = true;
+
+	//Always 'Character.Status.DoingSomething'
+	FGameplayTagContainer Tags;
+	Tags.AddTag(AJFCharacter::DoingSomethingTag);
+	
+	SetAssetTags(Tags);
+	ActivationBlockedTags = Tags;
+}
+
 void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                 const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                 const FGameplayEventData* TriggerEventData)

@@ -3,8 +3,10 @@
 
 #include "MeteredGameplayAbility.h"
 
+#include "AbilitySystemLog.h"
 #include "JF/JFCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
@@ -28,35 +30,18 @@ bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Han
 	Character = Char;
 	if(!Character->IsValidLowLevel()) CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 	
-	if(Char)
+	if(Character)
 	{
-		float MeterFull = Char->GetMeter();
+		float MeterFull = Character->GetMeter();
 		MeterFull -= AbilityCost * 100.f;
 		
-		Char->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
+		Character->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
 			MeterFull);
-
-		isKeyHeld = true;
-		Character->AbilitySystemComponent->AbilityReleasedEvent.AddDynamic(this,
-			&UMeteredGameplayAbility::onKeyReleased);
-
+		
 		return true;
 	}
 	
 	return Super::CommitAbility(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags);
-}
-
-void UMeteredGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	bool bReplicateEndAbility, bool bWasCancelled)
-{
-	if(Character)
-	{
-		Character->AbilitySystemComponent->AbilityReleasedEvent.RemoveDynamic(this,
-			&UMeteredGameplayAbility::onKeyReleased);
-	}
-	
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -67,10 +52,17 @@ void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle H
 	{
 		Character = Cast<AJFCharacter>(ActorInfo->OwnerActor);
 	}
-	
-	LastTime = GetWorld()->GetTimeSeconds();
+
+	//Last Check for Character -> Cancel if Invalid
+	if(!Character->IsValidLowLevel())
+	{
+		K2_CancelAbility();
+		return;
+	}
 
 	K2_CommitAbility();
+	
+	LastTime = GetWorld()->GetTimeSeconds();
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -94,4 +86,27 @@ void UMeteredGameplayAbility::onTick()
 	}
 
 	Super::onTick();
+}
+
+void UMeteredGameplayAbility::InputReleased(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	UKismetSystemLibrary::PrintString(GetWorld(), "Input Released");
+	
+	ClientKeyReleased();
+	ServerKeyReleased();
+	
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+}
+
+void UMeteredGameplayAbility::ClientKeyReleased()
+{
+	if(EndAbilityOnKeyRelease) K2_EndAbility();
+	isKeyHeld = false;
+}
+
+void UMeteredGameplayAbility::ServerKeyReleased_Implementation()
+{
+	if(EndAbilityOnKeyRelease) K2_EndAbility();
+	isKeyHeld = false;
 }

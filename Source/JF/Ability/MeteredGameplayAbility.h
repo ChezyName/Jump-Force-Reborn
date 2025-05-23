@@ -20,7 +20,6 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 	virtual bool CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FGameplayTagContainer* OptionalRelevantTags) override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 	UPROPERTY()
 	UHitboxTask* TickTask;
@@ -33,22 +32,30 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 
 	virtual void onTick() override;
 
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerKeyReleased();
+
 	UFUNCTION()
-	void onKeyReleased() {isKeyHeld = false;}
+	void ClientKeyReleased();
 public:
 	//Will Cost Full Bar (1 - 6)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6))
 	int AbilityCost = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600))
 	float MeterPerSecond = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	bool ForceEndOnMeterZero = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool EndAbilityOnKeyRelease = true;
 
 	UFUNCTION(BlueprintPure)
 	AJFCharacter* GetCharacter() {return Character;}
 
 	UPROPERTY(BlueprintReadOnly)
-	bool isKeyHeld = false;
+	bool isKeyHeld = true;
 };

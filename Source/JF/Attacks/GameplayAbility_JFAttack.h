@@ -62,6 +62,10 @@ UCLASS()
 class JF_API UGameplayAbility_JFAttack : public UGameplayAbility
 {
 	GENERATED_BODY()
+	
+public:
+	UGameplayAbility_JFAttack();
+	
 private:
 	UPROPERTY()
 	TArray<UHitbox*> Hitboxes;
