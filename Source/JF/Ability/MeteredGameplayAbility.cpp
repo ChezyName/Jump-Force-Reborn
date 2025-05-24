@@ -63,6 +63,7 @@ void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle H
 	K2_CommitAbility();
 	
 	LastTime = GetWorld()->GetTimeSeconds();
+	isKeyHeld = true;
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }

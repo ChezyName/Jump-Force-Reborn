@@ -41,17 +41,17 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 	void ClientKeyReleased();
 public:
 	//Will Cost Full Bar (1 - 6)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
 	int AbilityCost = 1;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600), Category="Ability")
 	float MeterPerSecond = 0.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
 	bool ForceEndOnMeterZero = true;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool EndAbilityOnKeyRelease = true;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	bool EndAbilityOnKeyRelease = false;
 
 	UFUNCTION(BlueprintPure)
 	AJFCharacter* GetCharacter() {return Character;}

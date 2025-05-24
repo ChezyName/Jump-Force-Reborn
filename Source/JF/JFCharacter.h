@@ -48,7 +48,17 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void TakeDamage(float Damage, AJFCharacter* Character);
+
+protected:
+	UFUNCTION(Blueprintable)
+	void OnDeath(AJFCharacter* Killer);
 public:
+
+//========================================================================================>
+	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
     

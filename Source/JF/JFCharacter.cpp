@@ -655,3 +655,44 @@ void AJFCharacter::TickQueuedAttack(float DeltaSeconds)
 	if(Attack.Type == Light) LightAttack(false);
 	if(Attack.Type == Heavy) HeavyAttack(false);
 }
+
+//Damage Function
+void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
+{
+	if(DamageDealer == nullptr || Damage == 0) return;
+
+	//Server Only Function
+	if(!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Take Damage from Client Version"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("%s is Damaging %s for %f"), *DamageDealer->GetName(),
+		*GetName(), Damage);
+
+	//Deal Damage or Parry or Block
+	
+	float cHealth = GetNumericAttribute(UJFAttributeSet::GetHealthAttribute());
+	cHealth -= Damage;
+	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
+
+	if(cHealth <= 0) OnDeath(DamageDealer);
+}
+
+void AJFCharacter::OnDeath(AJFCharacter* Killer)
+{
+	if(Killer == nullptr) return;
+
+	//Server Only Function
+	if(!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Kill Character from Client Version"));
+		return;
+	}
+	
+	UE_LOG(LogTemp, Log, TEXT("%s has KILLED: %s"), *Killer->GetName(),
+		*GetName())
+
+	//Kill User
+}

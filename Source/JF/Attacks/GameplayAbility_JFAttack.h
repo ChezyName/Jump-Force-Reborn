@@ -65,6 +65,9 @@ class JF_API UGameplayAbility_JFAttack : public UGameplayAbility
 	
 public:
 	UGameplayAbility_JFAttack();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
+	float Damage = 150.f;
 	
 private:
 	UPROPERTY()
@@ -95,13 +98,16 @@ private:
 
 	UFUNCTION()
 	void GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors);
+
+	float DeltaTime;
+	float LastTime;
 public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = Hitbox, DisplayName = "Hitbox Hit", meta=(ScriptName = "HitboxHit"))
 	void OnHitboxHit(UHitbox* Hitbox);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = Tick, DisplayName = "On Tick", meta=(ScriptName = "OnTick"))
-	void OnTickEvent();
+	void OnTickEvent(float DeltaSeconds);
 	
 protected:
 	/*

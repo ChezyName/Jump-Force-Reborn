@@ -35,6 +35,7 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 	HitboxTask = UHitboxTask::CreateHitboxTicker(this);
 	HitboxTask->OnTick.AddDynamic(this, &UGameplayAbility_JFAttack::onTick);
 	HitboxTask->ReadyForActivation();
+	LastTime = GetWorld()->GetTimeSeconds();
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -58,7 +59,10 @@ void UGameplayAbility_JFAttack::onTick()
 		TickHitbox(Hitboxes[i]);
 	}
 
-	OnTickEvent();
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	DeltaTime = CurrentTime - LastTime;
+	LastTime = CurrentTime;
+	OnTickEvent(DeltaTime);
 }
 
 void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color, bool Display)
@@ -164,6 +168,7 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 			if(AJFCharacter* Char = Cast<AJFCharacter>(Actor))
 			{
 				//Damage Char
+				/* DEBUG HIT
 				if(GetAvatarActorFromActorInfo() && Char)
 				{
 					UKismetSystemLibrary::PrintString(GetWorld(),
@@ -171,7 +176,13 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 						Char->GetName(), true, true, FLinearColor::Blue,
 						30);
 				}
+				*/
 
+				if(AJFCharacter* SelfChar = Cast<AJFCharacter>(GetAvatarActorFromActorInfo()))
+				{
+					Char->TakeDamage(Damage, SelfChar);
+				}
+				
 				OnHitboxHit(Hitbox);
 				ActorsHit.Add(Actor);
 			}
