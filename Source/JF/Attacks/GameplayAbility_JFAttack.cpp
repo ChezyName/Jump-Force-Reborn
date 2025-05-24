@@ -36,6 +36,7 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 	HitboxTask->OnTick.AddDynamic(this, &UGameplayAbility_JFAttack::onTick);
 	HitboxTask->ReadyForActivation();
 	LastTime = GetWorld()->GetTimeSeconds();
+	ResetActorsHit();
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
