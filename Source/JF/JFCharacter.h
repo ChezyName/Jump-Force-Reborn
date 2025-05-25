@@ -35,7 +35,10 @@ constexpr float CAMERA_LERP_SPEED = 2.5f;
 constexpr float LOCK_ON_CAMERA_DIST = 250.f;
 constexpr float DEFAULT_CAMERA_DIST = 500.f;
 
-static const FVector LOCK_ON_CAMERA_SOCKET_OFFSET = FVector(0, 100, 50);
+constexpr float CAMERA_LERP_MIN_DIST = 100.f;
+constexpr float CAMERA_LERP_MAX_DIST = 800.f;
+static const FVector LOCK_ON_MIN_CAMERA_SOCKET_OFFSET = FVector(150, 300, 75);
+static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 100, 50);
 static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
 USTRUCT()
@@ -87,6 +90,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category=UI)
 	FVector2D GetPlayerInputVector() {return PlayerInputVector;}
+
+	UFUNCTION(BlueprintPure, Category=Dash)
+	FVector GetDashVector();
 
 	UFUNCTION(BlueprintPure, Category=UI)
 	FVector GetMovementVector();

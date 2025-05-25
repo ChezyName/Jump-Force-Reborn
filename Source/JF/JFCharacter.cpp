@@ -252,6 +252,32 @@ FVector AJFCharacter::GetMovementVector()
 	return FVector::ZeroVector;
 }
 
+FVector AJFCharacter::GetDashVector()
+{
+	if(isLockedOn)
+	{
+		FVector ForwardVec = GetActorForwardVector();
+		FVector RightVec = GetActorRightVector();
+		
+		FVector2D Input = GetPlayerInputVector();
+		if(Input == FVector2D::ZeroVector)
+		{
+			return ForwardVec * -1;
+		}
+
+		return (ForwardVec * Input.Y) + (RightVec * Input.X);
+	}
+
+	//Not Locked on Camera
+	FVector Movement = GetMovementVector();
+	if(Movement == FVector::ZeroVector)
+	{
+		return GetCameraForwardVector() * -1;
+	}
+
+	return Movement;
+}
+
 FVector AJFCharacter::GetCameraRightVector()
 {
 	if (Controller != nullptr)
@@ -300,7 +326,7 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 	
 		// get right vector 
 		FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
+		
 		if(isLockedOn)
 		{
 			ForwardDirection = GetActorForwardVector();
@@ -469,7 +495,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	if(IsLocallyControlled())
 	{
 		//Socket Length & Socket Offset
-		if(GetCameraBoom())
+		if(GetCameraBoom() && LockOnCharacter)
 		{
 			GetCameraBoom()->TargetArmLength = FMath::FInterpTo(
 				GetCameraBoom()->TargetArmLength,
@@ -478,12 +504,34 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				CAMERA_LERP_SPEED
 			);
 
+			const float TargetDist = FVector::Dist(GetActorLocation(), LockOnCharacter->GetActorLocation());
+			const float Alpha = FMath::GetMappedRangeValueClamped(
+				FVector2D(CAMERA_LERP_MIN_DIST, CAMERA_LERP_MAX_DIST),
+				FVector2D(0.0f, 1.0f),
+				TargetDist
+			);
+			const FVector FinalLockedOnSocketOffset =
+				FMath::Lerp(LOCK_ON_MIN_CAMERA_SOCKET_OFFSET, LOCK_ON_MAX_CAMERA_SOCKET_OFFSET, Alpha);
+			
 			GetCameraBoom()->SocketOffset = FMath::VInterpTo(
 			GetCameraBoom()->SocketOffset,
-			isLockedOn ? LOCK_ON_CAMERA_SOCKET_OFFSET : DEFAULT_CAMERA_SOCKET_OFFSET,
+			isLockedOn ? FinalLockedOnSocketOffset : DEFAULT_CAMERA_SOCKET_OFFSET,
 			DeltaSeconds,
 				CAMERA_LERP_SPEED
 			);
+
+			//Camera Look at Target
+			if(GetFollowCamera())
+			{
+				FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(GetFollowCamera()->GetComponentLocation(),
+					LockOnCharacter->GetActorLocation());
+
+				GetFollowCamera()->SetWorldRotation(LookAtRot);
+			}
+			
+			UKismetSystemLibrary::PrintString(GetWorld(),
+				"Target Distance: " + FString::SanitizeFloat(TargetDist), true,
+				true, FLinearColor::Yellow, 2, FName("TargetLock"));
 		}
 	}
 
@@ -761,6 +809,7 @@ void AJFCharacter::OnLockOnPressed()
 		setLockedOnServer();
 		GetController()->SetControlRotation(FRotator::ZeroRotator);
 		GetCameraBoom()->bUsePawnControlRotation = true;
+		GetFollowCamera()->SetRelativeRotation(FRotator::ZeroRotator);
 		UKismetSystemLibrary::PrintString(GetWorld(), "Target Un-Locked");
 		return;
 	}
