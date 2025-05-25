@@ -17,15 +17,10 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "InputMappingContext.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
-
-/** TODO
- * Combo-Combo System
- * Light Combo & Heavy Combo Share Combo Number & Combo Time
- * For Example Light -> Heavy -> Light will select the 2nd combo value for Heavy
- * God of War (2018 / Ragnorok) Style System
-**/
 
 //////////////////////////////////////////////////////////////////////////
 // AJFCharacter
@@ -57,8 +52,9 @@ AJFCharacter::AJFCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 350.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = DEFAULT_CAMERA_DIST; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->SocketOffset = FVector(0, 0, 75.f);
 	CameraBoom->SetRelativeLocation(FVector(0,0,40));
 
 	// Create a follow camera
@@ -110,6 +106,14 @@ AJFCharacter::AJFCharacter()
 	if (LookActionFinder.Succeeded())
 	{
 		LookAction = LookActionFinder.Object;
+	}
+
+	//Lock On Action
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+	LockOnActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_CameraLock.IA_CameraLock'"));
+	if (LockOnActionFinder.Succeeded())
+	{
+		LockOnAction = LockOnActionFinder.Object;
 	}
 
 	//Light Attack
@@ -202,6 +206,9 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJFCharacter::Look);
 
+		//Lock On
+		EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Triggered, this, &AJFCharacter::OnLockOnPressed);
+
 		//Light Attack
 		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered,
 			this, &AJFCharacter::LightAttack, true);
@@ -289,10 +296,16 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	
 		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		if(isLockedOn)
+		{
+			ForwardDirection = GetActorForwardVector();
+			RightDirection = GetActorRightVector();
+		}
 
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
@@ -302,6 +315,8 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 
 void AJFCharacter::Look(const FInputActionValue& Value)
 {
+	if(isLockedOn && LockOnCharacter) return;
+	
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -318,6 +333,8 @@ void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AJFCharacter, PlayerInputVector);
 	DOREPLIFETIME(AJFCharacter, isTryingMeterCharge);
+	DOREPLIFETIME(AJFCharacter, isLockedOn);
+	DOREPLIFETIME(AJFCharacter, LockOnCharacter);
 }
 
 /*
@@ -433,6 +450,42 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	//VFX & Cant Move During Meter Charge
 	MeterChargeFX->SetActive(isChargingMeter());
 	GetMovementComponent()->SetActive(!isChargingMeter());
+
+	//Player Look At
+	if(isLockedOn && LockOnCharacter)
+	{
+		//Player Look At Target
+		FVector PlayerLocation = GetActorLocation();
+		FVector TargetLocation = LockOnCharacter->GetActorLocation();
+
+		FRotator PlayerRotation = UKismetMathLibrary::FindLookAtRotation(PlayerLocation, TargetLocation);
+		PlayerRotation.Pitch = GetActorRotation().Pitch;
+		PlayerRotation.Roll = GetActorRotation().Roll;
+
+		SetActorRotation(PlayerRotation);
+	}
+
+	//Lock on Camera
+	if(IsLocallyControlled())
+	{
+		//Socket Length & Socket Offset
+		if(GetCameraBoom())
+		{
+			GetCameraBoom()->TargetArmLength = FMath::FInterpTo(
+				GetCameraBoom()->TargetArmLength,
+				isLockedOn ? LOCK_ON_CAMERA_DIST : DEFAULT_CAMERA_DIST,
+				DeltaSeconds,
+				CAMERA_LERP_SPEED
+			);
+
+			GetCameraBoom()->SocketOffset = FMath::VInterpTo(
+			GetCameraBoom()->SocketOffset,
+			isLockedOn ? LOCK_ON_CAMERA_SOCKET_OFFSET : DEFAULT_CAMERA_SOCKET_OFFSET,
+			DeltaSeconds,
+				CAMERA_LERP_SPEED
+			);
+		}
+	}
 
 	if(HasAuthority())
 	{
@@ -695,4 +748,75 @@ void AJFCharacter::OnDeath(AJFCharacter* Killer)
 		*GetName())
 
 	//Kill User
+}
+
+//Camera Lock on / Delock
+void AJFCharacter::OnLockOnPressed()
+{
+	//Either Lock on or Release Lock on Back to Normal Camera Conditions
+	if(isLockedOn)
+	{
+		isLockedOn = false;
+		LockOnCharacter = nullptr;
+		setLockedOnServer();
+		GetController()->SetControlRotation(FRotator::ZeroRotator);
+		GetCameraBoom()->bUsePawnControlRotation = true;
+		UKismetSystemLibrary::PrintString(GetWorld(), "Target Un-Locked");
+		return;
+	}
+
+	UKismetSystemLibrary::PrintString(GetWorld(), "Looking for Lock on Target");
+
+	//Lock on Target
+	TArray<AActor*> Enemies;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AJFCharacter::StaticClass(), Enemies);
+
+	AActor* FinalTarget = nullptr;
+	float FinalDot = -1;
+	for (AActor* Target : Enemies)
+	{
+		if(Target == this) continue;
+		
+		FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+		float Distance = ToTarget.Size();
+
+		FVector Forward = GetControlRotation().Vector();
+		float Dot = FVector::DotProduct(Forward.GetSafeNormal(), ToTarget.GetSafeNormal());
+
+		//FOV Angle = 90deg
+		//if (Dot < FMath::Cos(90.f * 0.5f)) continue; // angle check
+
+		//Check if Better Target
+		float TargetDot = FVector::DotProduct(GetCameraForwardVector(),
+				(Target->GetActorLocation() - GetFollowCamera()->GetComponentLocation()).GetSafeNormal());
+
+		if(TargetDot > FinalDot || FinalDot == -1)
+		{
+			FinalTarget = Target;
+			FinalDot = TargetDot;
+		}
+	}
+
+	if(FinalTarget)
+	{
+		GetController()->SetControlRotation(FRotator::ZeroRotator);
+		LockOnCharacter = static_cast<AJFCharacter*>(FinalTarget);
+		isLockedOn = true;
+		setLockedOnServer(true, LockOnCharacter);
+		GetCameraBoom()->bUsePawnControlRotation = false;
+
+		UKismetSystemLibrary::PrintString(GetWorld(), "Target Locked: " + FinalTarget->GetName());
+	}
+}
+
+void AJFCharacter::PostLockedOnChanged()
+{
+	GetCharacterMovement()->bOrientRotationToMovement = !isLockedOn;
+}
+
+void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter* TargetChar)
+{
+	isLockedOn = isLocked;
+	LockOnCharacter = TargetChar;
+	PostLockedOnChanged();
 }

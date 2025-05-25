@@ -20,12 +20,23 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+//Meter
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/2.5f;
 
+//Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
 constexpr float DASH_CHARGE_PER_SECOND = 100.f/3.f;
+
+//Camera
+constexpr float CAMERA_LERP_SPEED = 2.5f;
+
+constexpr float LOCK_ON_CAMERA_DIST = 250.f;
+constexpr float DEFAULT_CAMERA_DIST = 500.f;
+
+static const FVector LOCK_ON_CAMERA_SOCKET_OFFSET = FVector(0, 100, 50);
+static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -200,6 +211,10 @@ private:
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+
+	/** Lock On Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockOnAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LightAttackAction;
@@ -294,6 +309,19 @@ protected:
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=PostLockedOnChanged)
+	bool isLockedOn = false;
+	
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	AJFCharacter* LockOnCharacter;
+	void OnLockOnPressed();
+
+	UFUNCTION(Server, Reliable)
+	void setLockedOnServer(bool isLocked = false, AJFCharacter* LockedOnChar = nullptr);
+
+	UFUNCTION()
+	void PostLockedOnChanged();
 
 public:
 	/** Returns CameraBoom subobject **/
