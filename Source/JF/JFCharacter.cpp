@@ -531,9 +531,10 @@ void AJFCharacter::Tick(float DeltaSeconds)
 			);
 
 			//Camera Look at Target
-			if(GetFollowCamera())
+			if(GetFollowCamera() && LockOnCharacter)
 			{
-				FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(GetFollowCamera()->GetComponentLocation(),
+				FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(\
+					GetFollowCamera()->GetComponentLocation(),
 					LockOnCharacter->GetActorLocation());
 
 				GetFollowCamera()->SetWorldRotation(LookAtRot);
@@ -813,7 +814,7 @@ void AJFCharacter::OnLockOnPressed()
 		isLockedOn = false;
 		LockOnCharacter = nullptr;
 		setLockedOnServer();
-		GetController()->SetControlRotation(FRotator::ZeroRotator);
+		GetController()->SetControlRotation(GetCameraBoom()->GetTargetRotation());
 		GetCameraBoom()->bUsePawnControlRotation = true;
 		GetFollowCamera()->SetRelativeRotation(FRotator::ZeroRotator);
 		UKismetSystemLibrary::PrintString(GetWorld(), "Target Un-Locked");
