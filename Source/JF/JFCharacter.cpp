@@ -817,6 +817,7 @@ void AJFCharacter::OnLockOnPressed()
 		GetController()->SetControlRotation(GetCameraBoom()->GetTargetRotation());
 		GetCameraBoom()->bUsePawnControlRotation = true;
 		GetFollowCamera()->SetRelativeRotation(FRotator::ZeroRotator);
+		LockedOnEvent.Broadcast(LockOnCharacter);
 		UKismetSystemLibrary::PrintString(GetWorld(), "Target Un-Locked");
 		return;
 	}
@@ -860,6 +861,7 @@ void AJFCharacter::OnLockOnPressed()
 		isLockedOn = true;
 		setLockedOnServer(true, LockOnCharacter);
 		GetCameraBoom()->bUsePawnControlRotation = false;
+		LockedOnEvent.Broadcast(LockOnCharacter);
 
 		UKismetSystemLibrary::PrintString(GetWorld(), "Target Locked: " + FinalTarget->GetName());
 	}

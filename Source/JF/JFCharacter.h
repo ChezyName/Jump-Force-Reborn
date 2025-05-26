@@ -55,6 +55,8 @@ public:
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockedCharChanged, AJFCharacter*, Target);
+
 UCLASS(config=Game)
 class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -285,6 +287,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void SetMeter(bool isActive);
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnLockedCharChanged LockedOnEvent;
+
 protected:
 	UPROPERTY(Replicated)
 	bool isTryingMeterCharge = false;
@@ -321,6 +326,7 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	AJFCharacter* LockOnCharacter;
+	
 	void OnLockOnPressed();
 
 	UFUNCTION(Server, Reliable)
