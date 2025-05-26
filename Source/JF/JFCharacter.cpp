@@ -495,7 +495,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	if(IsLocallyControlled())
 	{
 		//Socket Length & Socket Offset
-		if(GetCameraBoom() && LockOnCharacter)
+		if(GetCameraBoom())
 		{
 			GetCameraBoom()->TargetArmLength = FMath::FInterpTo(
 				GetCameraBoom()->TargetArmLength,
@@ -504,18 +504,28 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				CAMERA_LERP_SPEED
 			);
 
-			const float TargetDist = FVector::Dist(GetActorLocation(), LockOnCharacter->GetActorLocation());
-			const float Alpha = FMath::GetMappedRangeValueClamped(
-				FVector2D(CAMERA_LERP_MIN_DIST, CAMERA_LERP_MAX_DIST),
-				FVector2D(0.0f, 1.0f),
-				TargetDist
-			);
-			const FVector FinalLockedOnSocketOffset =
-				FMath::Lerp(LOCK_ON_MIN_CAMERA_SOCKET_OFFSET, LOCK_ON_MAX_CAMERA_SOCKET_OFFSET, Alpha);
+			FVector FinalLockedOnSocketOffset = DEFAULT_CAMERA_SOCKET_OFFSET;
+
+			if(isLockedOn && LockOnCharacter)
+			{
+				const float TargetDist = FVector::Dist(GetActorLocation(), LockOnCharacter->GetActorLocation());
+				const float Alpha = FMath::GetMappedRangeValueClamped(
+					FVector2D(CAMERA_LERP_MIN_DIST, CAMERA_LERP_MAX_DIST),
+					FVector2D(0.0f, 1.0f),
+					TargetDist
+				);
+				FinalLockedOnSocketOffset =
+					FMath::Lerp(LOCK_ON_MIN_CAMERA_SOCKET_OFFSET, LOCK_ON_MAX_CAMERA_SOCKET_OFFSET, Alpha);
+				
+				
+				UKismetSystemLibrary::PrintString(GetWorld(),
+					"Target Distance: " + FString::SanitizeFloat(TargetDist), true,
+					true, FLinearColor::Yellow, 2, FName("TargetLock"));
+			}
 			
 			GetCameraBoom()->SocketOffset = FMath::VInterpTo(
 			GetCameraBoom()->SocketOffset,
-			isLockedOn ? FinalLockedOnSocketOffset : DEFAULT_CAMERA_SOCKET_OFFSET,
+			FinalLockedOnSocketOffset,
 			DeltaSeconds,
 				CAMERA_LERP_SPEED
 			);
@@ -528,10 +538,6 @@ void AJFCharacter::Tick(float DeltaSeconds)
 
 				GetFollowCamera()->SetWorldRotation(LookAtRot);
 			}
-			
-			UKismetSystemLibrary::PrintString(GetWorld(),
-				"Target Distance: " + FString::SanitizeFloat(TargetDist), true,
-				true, FLinearColor::Yellow, 2, FName("TargetLock"));
 		}
 	}
 
