@@ -63,6 +63,7 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 	GENERATED_BODY()
 public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
+	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -233,6 +234,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MeterChargeAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ParryAction;
+
 	void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
@@ -286,6 +290,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void SetMeter(bool isActive);
+
+	UFUNCTION(Server, Reliable)
+	void Parry();
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnLockedCharChanged LockedOnEvent;

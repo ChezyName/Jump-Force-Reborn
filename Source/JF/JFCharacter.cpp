@@ -86,7 +86,7 @@ AJFCharacter::AJFCharacter()
 
 	//Input Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext>
-	InputMapping(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/_CORE/Input/IMC_Default.IMC_Default'"));
+		InputMapping(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/_CORE/Input/IMC_Default.IMC_Default'"));
 	if (InputMapping.Succeeded())
 	{
 		DefaultMappingContext = InputMapping.Object;
@@ -94,7 +94,7 @@ AJFCharacter::AJFCharacter()
 
 	//Move Action
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	MoveActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Move.IA_Move'"));
+		MoveActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Move.IA_Move'"));
 	if (MoveActionFinder.Succeeded())
 	{
 		MoveAction = MoveActionFinder.Object;
@@ -102,7 +102,7 @@ AJFCharacter::AJFCharacter()
 
 	//Look Action
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	LookActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Look.IA_Look'"));
+		LookActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Look.IA_Look'"));
 	if (LookActionFinder.Succeeded())
 	{
 		LookAction = LookActionFinder.Object;
@@ -110,7 +110,7 @@ AJFCharacter::AJFCharacter()
 
 	//Lock On Action
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	LockOnActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_CameraLock.IA_CameraLock'"));
+		LockOnActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_CameraLock.IA_CameraLock'"));
 	if (LockOnActionFinder.Succeeded())
 	{
 		LockOnAction = LockOnActionFinder.Object;
@@ -118,7 +118,7 @@ AJFCharacter::AJFCharacter()
 
 	//Light Attack
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	LightAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_LightAttack.IA_LightAttack'"));
+		LightAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_LightAttack.IA_LightAttack'"));
 	if (LightAttackActionFinder.Succeeded())
 	{
 		LightAttackAction = LightAttackActionFinder.Object;
@@ -126,7 +126,7 @@ AJFCharacter::AJFCharacter()
 
 	//Heavy Attack
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	HeavyAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_HeavyAttack.IA_HeavyAttack'"));
+		HeavyAttackActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/AttackActions/IA_HeavyAttack.IA_HeavyAttack'"));
 	if (HeavyAttackActionFinder.Succeeded())
 	{
 		HeavyAttackAction = HeavyAttackActionFinder.Object;
@@ -134,11 +134,20 @@ AJFCharacter::AJFCharacter()
 
 	//Meter Charge
 	static ConstructorHelpers::FObjectFinder<UInputAction>
-	MeterChargeActionFinder(TEXT("InputAction'/Game/_CORE/Input/Actions/IA_Meter_Charge.IA_Meter_Charge'"));
+		MeterChargeActionFinder(TEXT("InputAction'/Game/_CORE/Input/Actions/IA_Meter_Charge.IA_Meter_Charge'"));
 
 	if (MeterChargeActionFinder.Succeeded())
 	{
 		MeterChargeAction = MeterChargeActionFinder.Object;
+	}
+
+	//Parry
+	static ConstructorHelpers::FObjectFinder<UInputAction>
+		ParryActionFinder(TEXT("/Script/EnhancedInput.InputAction'/Game/_CORE/Input/Actions/IA_Parry.IA_Parry'"));
+
+	if (ParryActionFinder.Succeeded())
+	{
+		ParryAction = ParryActionFinder.Object;
 	}
 
 	// Load Niagara System asset - Meter Charge FX
@@ -220,6 +229,9 @@ void AJFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		//Meter Charge
 		EnhancedInputComponent->BindAction(MeterChargeAction, ETriggerEvent::Triggered, this, &AJFCharacter::SetMeter, true);
 		EnhancedInputComponent->BindAction(MeterChargeAction, ETriggerEvent::Completed, this, &AJFCharacter::SetMeter, false);
+
+		//Parry
+		EnhancedInputComponent->BindAction(ParryAction, ETriggerEvent::Triggered, this, &AJFCharacter::Parry);
 	}
 	else
 	{
@@ -315,7 +327,8 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 	UpdatePlayerMovementVector(MovementVector);
 
 	if (Controller != nullptr && !isChargingMeter()
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag))
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(CantMoveTag))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -475,7 +488,6 @@ void AJFCharacter::Tick(float DeltaSeconds)
 
 	//VFX & Cant Move During Meter Charge
 	MeterChargeFX->SetActive(isChargingMeter());
-	GetMovementComponent()->SetActive(!isChargingMeter());
 
 	//Player Look At
 	if(isLockedOn && LockOnCharacter)
@@ -877,4 +889,18 @@ void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter*
 	isLockedOn = isLocked;
 	LockOnCharacter = TargetChar;
 	PostLockedOnChanged();
+}
+
+//====================================================================================
+// Parry Functions
+
+void AJFCharacter::Parry_Implementation()
+{
+	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)) return;
+
+	//Parry Now
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
+
+	//Parry Timer
 }
