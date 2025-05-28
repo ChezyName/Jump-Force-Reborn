@@ -557,6 +557,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	if(HasAuthority())
 	{
 		TickMeter(DeltaSeconds);
+		TickParry(DeltaSeconds);
 		
 		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
 		bool hasAttackTags = false;
@@ -899,8 +900,51 @@ void AJFCharacter::Parry_Implementation()
 	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)) return;
 
 	//Parry Now
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
+	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
+	AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
 
 	//Parry Timer
+	ParryTime = PARRY_PRE_LAG + PARRY_WINDOW + PARRY_POST_LAG;
+
+	//Reset All
+	bStartParryWindow = false;
+	bEndParryWindow = false;
+	bIsParrying = true;
+	
+	GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red, "Pre-Parry Window Started");
+}
+
+void AJFCharacter::TickParry(float DeltaSeconds)
+{
+	ParryTime -= DeltaSeconds;
+	if(!bIsParrying) return;
+
+	if(ParryTime <= 0)
+	{
+		//End Parry (DoingSomething)
+		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red, "Parry is Over");
+		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+		bIsParrying = false;
+	}
+	else if(ParryTime <= PARRY_POST_LAG)
+	{
+		//Parry Post Lag - End Parry
+		if(!bEndParryWindow)
+		{
+			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Yellow, "Parry Window Ended");
+			AbilitySystemComponent->RemoveLooseGameplayTag(ParryTag);
+			bEndParryWindow = true;
+		}
+	}
+	else if(ParryTime <= (PARRY_WINDOW + PARRY_POST_LAG))
+	{
+		//Start Parry Time
+		if(!bStartParryWindow)
+		{
+			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Parry Window Started");
+			AbilitySystemComponent->AddLooseGameplayTag(ParryTag);
+			bStartParryWindow = true;
+		}
+	}
 }

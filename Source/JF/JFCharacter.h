@@ -41,6 +41,10 @@ static const FVector LOCK_ON_MIN_CAMERA_SOCKET_OFFSET = FVector(-50, 300, 100);
 static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 100, 50);
 static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
+constexpr float PARRY_PRE_LAG = 0.05f;
+constexpr float PARRY_WINDOW = 0.15f;
+constexpr float PARRY_POST_LAG = 0.1f;
+
 USTRUCT()
 struct FAbilityInputHandler
 {
@@ -341,6 +345,16 @@ protected:
 
 	UFUNCTION()
 	void PostLockedOnChanged();
+
+	UFUNCTION()
+	void TickParry(float DeltaSeconds);
+	
+	UPROPERTY()
+	float ParryTime = 0;
+
+	bool bStartParryWindow;
+	bool bEndParryWindow;
+	bool bIsParrying;
 
 public:
 	/** Returns CameraBoom subobject **/
