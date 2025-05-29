@@ -45,6 +45,8 @@ constexpr float PARRY_PRE_LAG = 0.05f;
 constexpr float PARRY_WINDOW = 0.15f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
+
 USTRUCT()
 struct FAbilityInputHandler
 {
@@ -72,6 +74,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* Character);
+
+	UPROPERTY(BlueprintAssignable)
+	FParryAnimation ParryAnimationEvent;
 
 protected:
 	UFUNCTION(Blueprintable)
@@ -348,6 +353,9 @@ protected:
 
 	UFUNCTION()
 	void TickParry(float DeltaSeconds);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void CallParryEvent();
 	
 	UPROPERTY()
 	float ParryTime = 0;

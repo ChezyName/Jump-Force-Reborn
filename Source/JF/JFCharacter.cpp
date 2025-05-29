@@ -910,6 +910,8 @@ void AJFCharacter::Parry_Implementation()
 	bStartParryWindow = false;
 	bEndParryWindow = false;
 	bIsParrying = true;
+
+	CallParryEvent();
 	
 	GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red, "Pre-Parry Window Started");
 }
@@ -947,4 +949,9 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 			bStartParryWindow = true;
 		}
 	}
+}
+
+void AJFCharacter::CallParryEvent_Implementation()
+{
+	ParryAnimationEvent.Broadcast();
 }
