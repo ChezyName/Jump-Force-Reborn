@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "JFCharacter.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -558,6 +560,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	{
 		TickMeter(DeltaSeconds);
 		TickParry(DeltaSeconds);
+		TickStun(DeltaSeconds);
 		
 		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
 		bool hasAttackTags = false;
@@ -792,8 +795,22 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	UE_LOG(LogTemp, Log, TEXT("%s is Damaging %s for %f"), *DamageDealer->GetName(),
 		*GetName(), Damage);
 
-	//Deal Damage or Parry or Block
-	
+	//Check for Parry
+	if(AbilitySystemComponent->HasMatchingGameplayTag(ParryTag))
+	{
+		//Parry Attack
+		onParried(Damage, this);
+
+		//End Parry Window Early Since Attack was Parried
+		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Ending Parry Window Early -> Attack Parried");
+		ParryTime = 0;
+		return;
+	}
+
+	//End Stun if Stunned
+	TickStun(0, true);
+
+	//Deal Damage
 	float cHealth = GetNumericAttribute(UJFAttributeSet::GetHealthAttribute());
 	cHealth -= Damage;
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
@@ -899,7 +916,10 @@ void AJFCharacter::Parry_Implementation()
 {
 	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)) return;
 
-	//Parry Now
+	//Cannot Move for First Few Frames of Parry
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
+	
 	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
 	AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
 
@@ -919,12 +939,14 @@ void AJFCharacter::Parry_Implementation()
 void AJFCharacter::TickParry(float DeltaSeconds)
 {
 	ParryTime -= DeltaSeconds;
-	if(!bIsParrying) return;
+	if(!bIsParrying || !HasAuthority()) return;
 
 	if(ParryTime <= 0)
 	{
 		//End Parry (DoingSomething)
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red, "Parry is Over");
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
 		bIsParrying = false;
@@ -935,6 +957,7 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		if(!bEndParryWindow)
 		{
 			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Yellow, "Parry Window Ended");
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(ParryTag);
 			AbilitySystemComponent->RemoveLooseGameplayTag(ParryTag);
 			bEndParryWindow = true;
 		}
@@ -945,13 +968,59 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		if(!bStartParryWindow)
 		{
 			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Parry Window Started");
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
 			AbilitySystemComponent->AddLooseGameplayTag(ParryTag);
 			bStartParryWindow = true;
 		}
 	}
 }
 
+void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Character)
+{
+	GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red,
+		GetName() + " Has Been Stunned due to Parry.");
+	
+	//When Character Parries US -> Cannot Do Anything for Duration (Stunned)
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
+	AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
+	
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
+	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
+
+	StunTime = PARRY_STUN_TIME;
+	isStunned = true;
+
+	//Effects
+	CallStunEvent();
+
+	//End Ability
+	AbilitySystemComponent->CancelAllAbilities();
+}
+
+void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
+{
+	if(!isStunned || !HasAuthority()) return;
+
+	StunTime -= DeltaSeconds;
+
+	if(StunTime <= 0 || ForceEnd)
+	{
+		isStunned = false;
+
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+	
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+	}
+}
+
 void AJFCharacter::CallParryEvent_Implementation()
 {
 	ParryAnimationEvent.Broadcast();
+}
+
+void AJFCharacter::CallStunEvent_Implementation()
+{
+	StunAnimationEvent.Broadcast();
 }

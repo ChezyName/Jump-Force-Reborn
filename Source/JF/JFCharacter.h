@@ -45,7 +45,10 @@ constexpr float PARRY_PRE_LAG = 0.05f;
 constexpr float PARRY_WINDOW = 0.15f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
+constexpr float PARRY_STUN_TIME = 0.5f;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStunAnimation);
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -54,9 +57,9 @@ struct FAbilityInputHandler
 public:
 	UPROPERTY()
 	FGameplayAbilitySpecHandle Handle;
+	
 	UPROPERTY()
 	UInputAction* Action;
-	
 };
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -77,6 +80,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FParryAnimation ParryAnimationEvent;
+	UPROPERTY(BlueprintAssignable)
+	FStunAnimation StunAnimationEvent;
 
 protected:
 	UFUNCTION(Blueprintable)
@@ -354,11 +359,24 @@ protected:
 	UFUNCTION()
 	void TickParry(float DeltaSeconds);
 
+	UFUNCTION()
+	void TickStun(float DeltaSeconds, bool ForceEnd = false);
+
 	UFUNCTION(NetMulticast, Reliable)
 	void CallParryEvent();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void CallStunEvent();
+
+	UFUNCTION(Server, Reliable)
+	void onParried(float Damage, AJFCharacter* Character);
+	
 	UPROPERTY()
 	float ParryTime = 0;
+
+	UPROPERTY()
+	float StunTime = 0;
+	bool isStunned = false;
 
 	bool bStartParryWindow;
 	bool bEndParryWindow;
