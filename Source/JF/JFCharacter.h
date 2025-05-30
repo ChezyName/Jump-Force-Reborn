@@ -74,6 +74,7 @@ public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
+	static const inline FGameplayTag StunTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Stunned"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* Character);
@@ -83,12 +84,22 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FStunAnimation StunAnimationEvent;
 
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void setMeshVisibilityServer(bool isVisible = true);
+
 protected:
 	UFUNCTION(Blueprintable)
 	void OnDeath(AJFCharacter* Killer);
-public:
 
-//========================================================================================>
+	UFUNCTION()
+	void onMeshVisibilityChanged()
+	{
+		if(GetMesh()) GetMesh()->SetVisibility(bMeshVisibility);
+	}
+
+	UPROPERTY(ReplicatedUsing=onMeshVisibilityChanged)
+	bool bMeshVisibility = true;
+public:
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;

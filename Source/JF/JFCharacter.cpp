@@ -376,6 +376,7 @@ void AJFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AJFCharacter, isTryingMeterCharge);
 	DOREPLIFETIME(AJFCharacter, isLockedOn);
 	DOREPLIFETIME(AJFCharacter, LockOnCharacter);
+	DOREPLIFETIME(AJFCharacter, bMeshVisibility);
 }
 
 /*
@@ -818,6 +819,12 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	if(cHealth <= 0) OnDeath(DamageDealer);
 }
 
+void AJFCharacter::setMeshVisibilityServer_Implementation(bool isVisible)
+{
+	bMeshVisibility = isVisible;
+	onMeshVisibilityChanged();
+}
+
 void AJFCharacter::OnDeath(AJFCharacter* Killer)
 {
 	if(Killer == nullptr) return;
@@ -977,6 +984,9 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 
 void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Character)
 {
+	//Only Stunned Once
+	if(isStunned) return;
+	
 	GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red,
 		GetName() + " Has Been Stunned due to Parry.");
 	
@@ -987,6 +997,9 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
 	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
 
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(StunTag);
+	AbilitySystemComponent->AddLooseGameplayTag(StunTag);
+
 	StunTime = PARRY_STUN_TIME;
 	isStunned = true;
 
@@ -995,6 +1008,7 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 
 	//End Ability
 	AbilitySystemComponent->CancelAllAbilities();
+	UE_LOG(LogTemp, Warning, TEXT("CancelAllAbilities called. Active: %d"), AbilitySystemComponent->GetActivatableAbilities().Num());
 }
 
 void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
@@ -1012,6 +1026,9 @@ void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
 	
 		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(StunTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(StunTag);
 	}
 }
 

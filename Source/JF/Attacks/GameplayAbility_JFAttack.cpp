@@ -19,6 +19,7 @@ UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
 	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	bReplicateInputDirectly = true;
+	bIsCancelable = true;
 
 	//Always 'Character.Status.DoingSomething'
 	FGameplayTagContainer Tags;
