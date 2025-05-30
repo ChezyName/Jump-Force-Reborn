@@ -272,6 +272,14 @@ public:
 	/** Meter Charge FX */
 	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
 	class UNiagaraComponent* MeterChargeFX;
+
+	/** Parry Eyes */
+	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
+	class UNiagaraComponent* RParryEyes;
+
+	/** Parry Eyes */
+	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
+	class UNiagaraComponent* LParryEyes;
 	
 	AJFCharacter();
 	
@@ -375,6 +383,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void CallParryEvent();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void ParryEndEvent();
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void CallStunEvent();

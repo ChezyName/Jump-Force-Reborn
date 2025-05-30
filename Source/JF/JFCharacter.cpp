@@ -72,9 +72,26 @@ AJFCharacter::AJFCharacter()
 	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
 	AbilitySystemComponent->AddAttributeSetSubobject(CoreAttributes);
 
+	//Meter Charge FX
 	MeterChargeFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MeterChargeFX"));
 	MeterChargeFX->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	MeterChargeFX->SetAutoActivate(false);
+
+	//Parry Eyes Effect (Anime Glowy Eyes)
+	RParryEyes = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ParryEyes_R"));
+	RParryEyes->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("head"));
+	RParryEyes->SetAutoActivate(true);
+	
+	LParryEyes = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ParryEyes_L"));
+	LParryEyes->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("head"));
+	LParryEyes->SetAutoActivate(true);
+
+	LParryEyes->SetVisibility(false);
+	RParryEyes->SetVisibility(false);
+
+	//Position Parry VFXs
+	RParryEyes->SetRelativeLocation(FVector(5, -11, 10));
+	LParryEyes->SetRelativeLocation(FVector(-5, -11, 10));
 
 	//Load Dash Ability
 	static ConstructorHelpers::FObjectFinder<UAbilityData>
@@ -158,6 +175,15 @@ AJFCharacter::AJFCharacter()
 	if (MeterChargeFX && MeterChargeFXFinder.Succeeded())
 	{
 		MeterChargeFX->SetAsset(MeterChargeFXFinder.Object.Get());
+	}
+
+	// Load Niagara System asset - Meter Charge FX
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem>
+		ParryVFXFinder(TEXT("NiagaraSystem'/Game/Characters/_Core/Parry/ParryEyes.ParryEyes'"));
+	if (LParryEyes && RParryEyes && ParryVFXFinder.Succeeded())
+	{
+		LParryEyes->SetAsset(ParryVFXFinder.Object.Get());
+		RParryEyes->SetAsset(ParryVFXFinder.Object.Get());
 	}
 }
 
@@ -800,7 +826,7 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	if(AbilitySystemComponent->HasMatchingGameplayTag(ParryTag))
 	{
 		//Parry Attack
-		onParried(Damage, this);
+		DamageDealer->onParried(Damage, this);
 
 		//End Parry Window Early Since Attack was Parried
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Ending Parry Window Early -> Attack Parried");
@@ -956,6 +982,7 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+		ParryEndEvent();
 		bIsParrying = false;
 	}
 	else if(ParryTime <= PARRY_POST_LAG)
@@ -1035,6 +1062,14 @@ void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
 void AJFCharacter::CallParryEvent_Implementation()
 {
 	ParryAnimationEvent.Broadcast();
+	LParryEyes->SetVisibility(true);
+	RParryEyes->SetVisibility(true);
+}
+
+void AJFCharacter::ParryEndEvent_Implementation()
+{
+	LParryEyes->SetVisibility(false);
+	RParryEyes->SetVisibility(false);
 }
 
 void AJFCharacter::CallStunEvent_Implementation()
