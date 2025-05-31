@@ -825,8 +825,9 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	//Check for Parry
 	if(AbilitySystemComponent->HasMatchingGameplayTag(ParryTag))
 	{
-		//Parry Attack
+		//Parry Attack & End Parry
 		DamageDealer->onParried(Damage, this);
+		TickParry(999);
 
 		//End Parry Window Early Since Attack was Parried
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Ending Parry Window Early -> Attack Parried");
@@ -974,6 +975,24 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 	ParryTime -= DeltaSeconds;
 	if(!bIsParrying || !HasAuthority()) return;
 
+	if(ParryTime <= (PARRY_WINDOW + PARRY_POST_LAG) && !bStartParryWindow)
+	{
+		//Start Parry Time
+		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Parry Window Started");
+		AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
+		AbilitySystemComponent->AddLooseGameplayTag(ParryTag);
+		bStartParryWindow = true;
+	}
+
+	if(ParryTime <= PARRY_POST_LAG && !bEndParryWindow)
+	{
+		//Parry Post Lag - End Parry
+		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Yellow, "Parry Window Ended");
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(ParryTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ParryTag);
+		bEndParryWindow = true;
+	}
+
 	if(ParryTime <= 0)
 	{
 		//End Parry (DoingSomething)
@@ -984,28 +1003,6 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
 		ParryEndEvent();
 		bIsParrying = false;
-	}
-	else if(ParryTime <= PARRY_POST_LAG)
-	{
-		//Parry Post Lag - End Parry
-		if(!bEndParryWindow)
-		{
-			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Yellow, "Parry Window Ended");
-			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(ParryTag);
-			AbilitySystemComponent->RemoveLooseGameplayTag(ParryTag);
-			bEndParryWindow = true;
-		}
-	}
-	else if(ParryTime <= (PARRY_WINDOW + PARRY_POST_LAG))
-	{
-		//Start Parry Time
-		if(!bStartParryWindow)
-		{
-			GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Parry Window Started");
-			AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
-			AbilitySystemComponent->AddLooseGameplayTag(ParryTag);
-			bStartParryWindow = true;
-		}
 	}
 }
 
