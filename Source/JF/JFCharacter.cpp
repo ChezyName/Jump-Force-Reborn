@@ -810,8 +810,22 @@ void AJFCharacter::TickQueuedAttack(float DeltaSeconds)
 	if(Attack.Type == Heavy) HeavyAttack(false);
 }
 
+void AJFCharacter::HealPlayer_Implementation(float HealAmount)
+{
+	if(HealAmount <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Heal Number Smaller Than 0, Healing=[%f]"), HealAmount);
+		return;
+	}
+	float cHealth = GetNumericAttribute(UJFAttributeSet::GetHealthAttribute());
+	float cMaxHealth = GetNumericAttribute(UJFAttributeSet::GetMaxHealthAttribute());
+	
+	cHealth = FMath::Clamp(cHealth + HealAmount, 0.f, cMaxHealth);
+	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
+}
+
 //Damage Function
-void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
+void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun)
 {
 	if(DamageDealer == nullptr || Damage == 0) return;
 
@@ -847,10 +861,13 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
 
 	//Hit Stun
-	HitStunTime = HIT_STUN_TIME;
-	AbilitySystemComponent->AddGameplayCue(HitStunTag);
-	AbilitySystemComponent->AddLooseGameplayTag(GAHitStunTag);
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);
+	if(!IgnoreHitStun)
+	{
+		HitStunTime = HIT_STUN_TIME;
+		AbilitySystemComponent->AddGameplayCue(HitStunTag);
+		AbilitySystemComponent->AddLooseGameplayTag(GAHitStunTag);
+		AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);	
+	}
 
 	if(cHealth <= 0) OnDeath(DamageDealer);
 }

@@ -68,6 +68,19 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
 	float Damage = 150.f;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<AActor*> GetActorsHit()
+	{
+		return ActorsHit;
+	}
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AActor* GetFirstActorHit()
+	{
+		if(ActorsHit.Num() > 0) return ActorsHit[0];
+		return nullptr;
+	}
 	
 private:
 	UPROPERTY()

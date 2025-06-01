@@ -80,7 +80,7 @@ public:
 	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void TakeDamage(float Damage, AJFCharacter* Character);
+	void TakeDamage(float Damage, AJFCharacter* Character, bool IgnoreHitStun = false);
 
 	UPROPERTY(BlueprintAssignable)
 	FParryAnimation ParryAnimationEvent;
@@ -89,6 +89,9 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void setMeshVisibilityServer(bool isVisible = true);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void HealPlayer(float HealAmount);
 
 protected:
 	UFUNCTION(Blueprintable)
