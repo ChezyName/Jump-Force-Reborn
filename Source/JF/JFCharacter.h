@@ -46,6 +46,7 @@ constexpr float PARRY_WINDOW = 0.15f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
 constexpr float PARRY_STUN_TIME = 0.5f;
+constexpr float HIT_STUN_TIME = 0.15f;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStunAnimation);
@@ -74,7 +75,9 @@ public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
-	static const inline FGameplayTag StunTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Stunned"));
+	static const inline FGameplayTag ParryStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun"));
+	static const inline FGameplayTag HitStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.HitStun"));
+	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* Character);
@@ -395,6 +398,9 @@ protected:
 	
 	UPROPERTY()
 	float ParryTime = 0;
+
+	UPROPERTY()
+	float HitStunTime = 0;
 
 	UPROPERTY()
 	float StunTime = 0;

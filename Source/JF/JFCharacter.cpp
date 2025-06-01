@@ -356,7 +356,8 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr && !isChargingMeter()
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(CantMoveTag))
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(CantMoveTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -639,6 +640,7 @@ bool AJFCharacter::isChargingMeter()
 	if(!GetAbilitySystemComponent()) return false;
 	
 	return !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
+	&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)
 	&& isTryingMeterCharge;
 }
 
@@ -843,6 +845,12 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer)
 	cHealth -= Damage;
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
 
+	//Hit Stun
+	HitStunTime = HIT_STUN_TIME;
+	AbilitySystemComponent->AddGameplayCue(HitStunTag);
+	AbilitySystemComponent->AddLooseGameplayTag(GAHitStunTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);
+
 	if(cHealth <= 0) OnDeath(DamageDealer);
 }
 
@@ -948,7 +956,8 @@ void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter*
 
 void AJFCharacter::Parry_Implementation()
 {
-	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)) return;
+	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag) ||
+	AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)) return;
 
 	//Cannot Move for First Few Frames of Parry
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
@@ -1020,9 +1029,8 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 	
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
 	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
-
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(StunTag);
-	AbilitySystemComponent->AddLooseGameplayTag(StunTag);
+	
+	AbilitySystemComponent->AddGameplayCue(ParryStunTag);
 
 	StunTime = PARRY_STUN_TIME;
 	isStunned = true;
@@ -1050,9 +1058,8 @@ void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
 	
 		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
-
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(StunTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(StunTag);
+		
+		AbilitySystemComponent->RemoveGameplayCue(ParryStunTag);
 	}
 }
 

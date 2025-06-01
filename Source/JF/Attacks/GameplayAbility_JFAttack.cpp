@@ -24,6 +24,7 @@ UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
 	//Always 'Character.Status.DoingSomething'
 	FGameplayTagContainer Tags;
 	Tags.AddTag(AJFCharacter::DoingSomethingTag);
+	Tags.AddTag(AJFCharacter::GAHitStunTag);
 	
 	SetAssetTags(Tags);
 	ActivationBlockedTags = Tags;
