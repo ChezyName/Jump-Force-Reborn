@@ -47,6 +47,7 @@ constexpr float PARRY_POST_LAG = 0.1f;
 
 constexpr float PARRY_STUN_TIME = 0.5f;
 constexpr float HIT_STUN_TIME = 0.15f;
+constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStunAnimation);
@@ -80,7 +81,7 @@ public:
 	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void TakeDamage(float Damage, AJFCharacter* Character, bool IgnoreHitStun = false);
+	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false);
 
 	UPROPERTY(BlueprintAssignable)
 	FParryAnimation ParryAnimationEvent;

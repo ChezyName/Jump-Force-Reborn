@@ -859,14 +859,19 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	float cHealth = GetNumericAttribute(UJFAttributeSet::GetHealthAttribute());
 	cHealth -= Damage;
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
-
-	//Hit Stun
+	
 	if(!IgnoreHitStun)
 	{
+		//Hit Stun
 		HitStunTime = HIT_STUN_TIME;
 		AbilitySystemComponent->AddGameplayCue(HitStunTag);
 		AbilitySystemComponent->AddLooseGameplayTag(GAHitStunTag);
-		AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);	
+		AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);
+
+		//Knock Back
+		float LaunchBackVel = FMath::Clamp(Damage * HIT_STUN_LAUNCH_VEL, 0.f, 1000.f);
+		FVector LaunchBack = DamageDealer->GetActorForwardVector() * LaunchBackVel;
+		LaunchCharacter(LaunchBack, true, false);
 	}
 
 	if(cHealth <= 0) OnDeath(DamageDealer);
