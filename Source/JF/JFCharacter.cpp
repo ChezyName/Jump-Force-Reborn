@@ -19,6 +19,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "InputMappingContext.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Game/JFGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -186,6 +187,15 @@ AJFCharacter::AJFCharacter()
 		LParryEyes->SetAsset(ParryVFXFinder.Object.Get());
 		RParryEyes->SetAsset(ParryVFXFinder.Object.Get());
 	}
+
+	
+	// Load Niagara System asset - Blood FX
+    static ConstructorHelpers::FObjectFinder<UNiagaraSystem>
+    	BloodFXFinder(TEXT("NiagaraSystem'/Game/Characters/_Core/_Blood/BloodSplatter_v2.BloodSplatter_v2'"));
+    if (BloodFXFinder.Succeeded())
+    {
+    	BloodFX = BloodFXFinder.Object.Get();
+    }
 }
 
 void AJFCharacter::PossessedBy(AController* NewController)
@@ -944,6 +954,9 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	float cHealth = GetNumericAttribute(UJFAttributeSet::GetHealthAttribute());
 	cHealth -= Damage;
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
+
+	//FXS - Scale Damage (Blood FX) for Project - Seals
+	TakeDamageFXs(Damage);
 	
 	if(!IgnoreHitStun)
 	{
@@ -960,6 +973,28 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	}
 
 	if(cHealth <= 0) OnDeath(DamageDealer);
+}
+
+void AJFCharacter::TakeDamageFXs_Implementation(float Damage)
+{
+	if(!BloodFX) return;
+	
+	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		BloodFX,
+		GetActorLocation(),
+		GetActorRotation(),
+		FVector(1.0f),    // Scale
+		true,             // bAutoDestroy
+		true,             // bAutoActivate
+		ENCPoolMethod::None,
+		true              // bPreCullCheck
+	);
+
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetVariableInt(TEXT("Damage"), Damage);
+	}
 }
 
 void AJFCharacter::setMeshVisibilityServer_Implementation(bool isVisible)

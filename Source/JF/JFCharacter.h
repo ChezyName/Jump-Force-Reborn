@@ -15,6 +15,7 @@
 #include "Logging/LogMacros.h"
 #include "JFCharacter.generated.h"
 
+class UNiagaraSystem;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -107,6 +108,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void TakeDamageFXs(float Damage);
+
 	UPROPERTY(BlueprintAssignable)
 	FParryAnimation ParryAnimationEvent;
 	UPROPERTY(BlueprintAssignable)
@@ -131,6 +135,9 @@ protected:
 	UPROPERTY(ReplicatedUsing=onMeshVisibilityChanged)
 	bool bMeshVisibility = true;
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UNiagaraSystem* BloodFX;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
