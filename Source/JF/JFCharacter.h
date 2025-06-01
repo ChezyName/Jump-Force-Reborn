@@ -10,6 +10,7 @@
 #include "Ability/JFASComponent.h"
 #include "Attributes/JFAttributeSet.h"
 #include "Components/ProgressBar.h"
+#include "Game/JFGameState.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "JFCharacter.generated.h"
@@ -49,8 +50,22 @@ constexpr float PARRY_STUN_TIME = 0.5f;
 constexpr float HIT_STUN_TIME = 0.15f;
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
+constexpr float TIME_STOP_HIT_DELAY = 0.01; //How Long Between Attacks in TS Can We Do
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FStunAnimation);
+
+USTRUCT()
+struct FTimeStopHit
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	AJFCharacter* Char;
+
+	UPROPERTY()
+	float Damage;
+};
 
 USTRUCT()
 struct FAbilityInputHandler
@@ -72,6 +87,15 @@ UCLASS(config=Game)
 class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
+private:
+	UPROPERTY()
+	AJFGameState* GS;
+	UPROPERTY()
+	TArray<FTimeStopHit> TimeStopHits;
+	UPROPERTY()
+	float TSHitTime = 0.f;
+	void TakeTSHit();
+	void TickTSHits(float DeltaSeconds);
 public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
@@ -326,6 +350,7 @@ public:
 	void InitAbilitiesInputSys();
 	
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	UFUNCTION(Server, Reliable)
@@ -416,6 +441,11 @@ protected:
 	bool bStartParryWindow;
 	bool bEndParryWindow;
 	bool bIsParrying;
+
+	UFUNCTION()
+	void TimeStopEvent(bool isTimeStopped, AJFCharacter* Char);
+	bool isTSEventBound = false;
+	bool wasCharStopped = false;
 
 public:
 	/** Returns CameraBoom subobject **/

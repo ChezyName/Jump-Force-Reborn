@@ -19,6 +19,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "InputMappingContext.h"
+#include "Game/JFGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -484,11 +485,58 @@ void AJFCharacter::InitAbilitiesInputSys()
 	//	true,true,FLinearColor::Green,30);
 }
 
+void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
+{
+	if(isTimeStopped && Char != this)
+	{
+		//We Are The TS Target
+		if(HasAuthority())
+		{
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
+			AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
+			
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
+			AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
+			wasCharStopped = true;
+		}
+
+		//Stop Animation Movement
+		GetMesh()->bPauseAnims = true;
+	}
+
+	if(!isTimeStopped)
+	{
+		if(wasCharStopped)
+		{
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
+			AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+			
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
+			AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+		}
+
+		GetMesh()->bPauseAnims = false;
+
+		if(HasAuthority())
+		{
+			//Do TS Hits
+			
+		}
+	}
+}
+
 void AJFCharacter::BeginPlay()
 {
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+
+	if(AJFGameState* _GS = Cast<AJFGameState>(GetWorld()->GetGameState()))
+	{
+		GS = _GS;
+		GS->TimeStopEvent.AddDynamic(this, &AJFCharacter::TimeStopEvent);
+		isTSEventBound = true;
 	}
 
 	//InitAbilities();
@@ -509,6 +557,16 @@ void AJFCharacter::BeginPlay()
 	}
 	
 	Super::BeginPlay();
+}
+
+void AJFCharacter::Destroyed()
+{
+	if(AJFGameState* _GS = Cast<AJFGameState>(GetWorld()->GetGameState()))
+	{
+		_GS->TimeStopEvent.RemoveDynamic(this, &AJFCharacter::TimeStopEvent);
+		isTSEventBound = false;
+	}
+	Super::Destroyed();
 }
 
 void AJFCharacter::Tick(float DeltaSeconds)
@@ -590,6 +648,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 		TickParry(DeltaSeconds);
 		TickStun(DeltaSeconds);
 		TickHitStun(DeltaSeconds);
+		TickTSHits(DeltaSeconds);
 		
 		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
 		bool hasAttackTags = false;
@@ -824,10 +883,36 @@ void AJFCharacter::HealPlayer_Implementation(float HealAmount)
 	SetNumericAttribute(UJFAttributeSet::GetHealthAttribute(), cHealth);
 }
 
+void AJFCharacter::TickTSHits(float DeltaSeconds)
+{
+	if(TimeStopHits.Num() <= 0 || !HasAuthority()) return;
+	TSHitTime -= DeltaSeconds;
+	if(TSHitTime <= 0) TakeTSHit();
+}
+
+void AJFCharacter::TakeTSHit()
+{
+	if((GS && GS->IsTimeStopped()) || TSHitTime > 0) return;
+	FTimeStopHit Hit = TimeStopHits.Pop();
+	TakeDamage(Hit.Damage, Hit.Char);
+	TSHitTime = TIME_STOP_HIT_DELAY;
+}
+
 //Damage Function
 void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun)
 {
 	if(DamageDealer == nullptr || Damage == 0) return;
+
+	//If In TimeStop
+	if(GS && GS->IsTimeStopped())
+	{
+		//Put Damage in Damage Log
+		TimeStopHits.Add({
+			DamageDealer,
+			Damage
+		});
+		return;
+	}
 
 	//Server Only Function
 	if(!HasAuthority())
