@@ -589,6 +589,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 		TickMeter(DeltaSeconds);
 		TickParry(DeltaSeconds);
 		TickStun(DeltaSeconds);
+		TickHitStun(DeltaSeconds);
 		
 		//If Gameplay Tags == Light or Heavy -> Ignore (Using Specific Ability)
 		bool hasAttackTags = false;
@@ -957,7 +958,7 @@ void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter*
 void AJFCharacter::Parry_Implementation()
 {
 	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag) ||
-	AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)) return;
+		AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)) return;
 
 	//Cannot Move for First Few Frames of Parry
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
@@ -1060,6 +1061,25 @@ void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
 		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
 		
 		AbilitySystemComponent->RemoveGameplayCue(ParryStunTag);
+	}
+}
+
+void AJFCharacter::TickHitStun(float DeltaSeconds)
+{
+	if(!HasAuthority() ||
+		!AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag))
+	{
+		HitStunTime = 0.f;
+		return;
+	}
+
+	HitStunTime -= DeltaSeconds;
+
+	if(HitStunTime <= 0)
+	{
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(GAHitStunTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(GAHitStunTag);
+		AbilitySystemComponent->RemoveGameplayCue(HitStunTag);
 	}
 }
 

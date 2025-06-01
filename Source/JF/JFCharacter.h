@@ -384,6 +384,9 @@ protected:
 	UFUNCTION()
 	void TickStun(float DeltaSeconds, bool ForceEnd = false);
 
+	UFUNCTION()
+	void TickHitStun(float DeltaSeconds);
+
 	UFUNCTION(NetMulticast, Reliable)
 	void CallParryEvent();
 
