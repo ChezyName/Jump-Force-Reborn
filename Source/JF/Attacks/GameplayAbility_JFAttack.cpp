@@ -65,7 +65,7 @@ void UGameplayAbility_JFAttack::onTick()
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	DeltaTime = CurrentTime - LastTime;
 	LastTime = CurrentTime;
-	OnTickEvent(DeltaTime);
+	if(callTickEvent) OnTickEvent(DeltaTime);
 }
 
 void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color, bool Display)

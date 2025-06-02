@@ -11,8 +11,9 @@
 bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor);
-	if(Char)
+	if(isActive && isToggledAbility) return true;
+	
+	if(AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor))
 	{
 		return Char->GetMeter() >= (AbilityCost * 100.f);
 	}
@@ -24,6 +25,8 @@ bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Han
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	FGameplayTagContainer* OptionalRelevantTags)
 {
+	if(isActive && isToggledAbility) return true;
+	
 	//Take Meter from Character
 	AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor);
 	
@@ -50,6 +53,13 @@ void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle H
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+	if(isActive && isToggledAbility) {
+		UKismetSystemLibrary::PrintString(GetWorld(), "End The Ability");
+		isActive = false;
+		K2_ActivateAbility();
+		return;
+	}
+	
 	if(!Character->IsValidLowLevel())
 	{
 		Character = Cast<AJFCharacter>(ActorInfo->OwnerActor);
@@ -66,21 +76,38 @@ void UMeteredGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle H
 	
 	LastTime = GetWorld()->GetTimeSeconds();
 	isKeyHeld = true;
+	isActive = true;
+	UKismetSystemLibrary::PrintString(GetWorld(), "Starting The Ability");
+
+	callTickEvent = !isToggledAbility;
+	if(isToggledAbility)
+	{
+		TickTask = UHitboxTask::CreateHitboxTicker(this);
+		TickTask->OnTick.AddDynamic(this, &UMeteredGameplayAbility::onTickSelf);
+		TickTask->ReadyForActivation();
+	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
-void UMeteredGameplayAbility::onTick()
+void UMeteredGameplayAbility::onTickSelf()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	DeltaTime = CurrentTime - LastTime;
 	LastTime = CurrentTime;
 
+	UKismetSystemLibrary::PrintString(GetWorld(), "Tick", true, true, FLinearColor::Yellow,
+		2, FName("TICK CLOCK"));
+
 	if(Character)
 	{
 		//Take Meter
 		float Meter = Character->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
-		if(ForceEndOnMeterZero && Meter <= 0) K2_EndAbility();
+		if(ForceEndOnMeterZero && Meter <= 0)
+		{
+			if(isToggledAbility)  K2_ActivateAbility();
+			else  K2_EndAbility();
+		}
 
 		Meter -= DeltaTime * MeterPerSecond;
 		Meter = FMath::Clamp(Meter, 0, MAX_METER);

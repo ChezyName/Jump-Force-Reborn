@@ -21,16 +21,19 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	
-	UPROPERTY()
-	UHitboxTask* TickTask;
-	
 	float DeltaTime;
 	float LastTime;
 
 	UPROPERTY()
 	AJFCharacter* Character;
 
-	virtual void onTick() override;
+	virtual void onTick() override
+	{
+		onTickSelf();
+		Super::onTick();
+	}
+
+	void onTickSelf();
 
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
@@ -39,7 +42,16 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 
 	UFUNCTION()
 	void ClientKeyReleased();
+
+	UPROPERTY()
+	bool isActive = false;
+
+	UPROPERTY()
+	UHitboxTask* TickTask;
 public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
+	bool isToggledAbility = false;
+	
 	//Will Cost Full Bar (1 - 6)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
 	int AbilityCost = 1;

@@ -99,6 +99,8 @@ protected:
 
 	UFUNCTION()
 	virtual void onTick();
+
+	bool callTickEvent = true;
 private:
 	UPROPERTY()
 	UHitboxTask* HitboxTask;
