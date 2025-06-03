@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "HitboxTask.h"
 #include "Abilities/GameplayAbility.h"
+#include "JF/JFCharacter.h"
 #include "GameplayAbility_JFAttack.generated.h"
 
 UENUM(BlueprintType)
@@ -56,6 +57,30 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bDebug = false;
+
+	FTransform GetWorldTransform()
+	{
+		FVector _Position = Location;
+		FRotator _Rotation = Rotation;
+		FVector _Size = Size;
+
+		if (AttachedTo_SKEL && AttachToBoneName != NAME_None)
+		{
+			// Attached to a Skeletal Mesh Bone
+			const FTransform SocketTransform = AttachedTo_SKEL->GetSocketTransform(AttachToBoneName);
+			_Position = SocketTransform.TransformPosition(Location);
+			_Rotation = SocketTransform.TransformRotation(Rotation.Quaternion()).Rotator();
+		}
+		else if (AttachedTo)
+		{
+			// Attached to a regular Component
+			const FTransform BaseTransform = AttachedTo->GetComponentTransform();
+			_Position = BaseTransform.TransformPosition(Location);
+			_Rotation = BaseTransform.TransformRotation(Rotation.Quaternion()).Rotator();
+		}
+
+		return FTransform(_Rotation, _Position, _Size);
+	}
 };
 
 UCLASS()
@@ -123,6 +148,15 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = Tick, DisplayName = "On Tick", meta=(ScriptName = "OnTick"))
 	void OnTickEvent(float DeltaSeconds);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Sounds", DisplayName="Play Grunt Sound")
+	bool bPlayGruntSound = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Sounds", DisplayName="Play Hit Sound")
+	bool bPlayHitSound = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Sounds", DisplayName="Attack Sound Type [HIT]")
+	TEnumAsByte<ESoundType> AttackSound = ESoundType::LightHit;
 	
 protected:
 	/*

@@ -6,6 +6,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -73,6 +74,17 @@ AJFCharacter::AJFCharacter()
 	AbilitySystemComponent->SetIsReplicated(true);
 	CoreAttributes = CreateDefaultSubobject<UJFAttributeSet>(TEXT("CoreAttributes"));
 	AbilitySystemComponent->AddAttributeSetSubobject(CoreAttributes);
+
+	VoicePlayer = CreateDefaultSubobject<UAudioComponent>(TEXT("VoiceLinePlayer"));
+	VoicePlayer->SetupAttachment(GetMesh(), "head");
+
+	//Load Attenuation
+	static ConstructorHelpers::FObjectFinder<USoundAttenuation>
+		VL_SoundAttenuation(TEXT("/Script/Engine.SoundAttenuation'/Game/_CORE/Audio/VL_Attenuation.VL_Attenuation'"));
+	if (VL_SoundAttenuation.Succeeded())
+	{
+		VoicePlayer->SetAttenuationSettings(VL_SoundAttenuation.Object.Get());
+	}
 
 	//Meter Charge FX
 	MeterChargeFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MeterChargeFX"));
@@ -1241,4 +1253,79 @@ void AJFCharacter::ParryEndEvent_Implementation()
 void AJFCharacter::CallStunEvent_Implementation()
 {
 	StunAnimationEvent.Broadcast();
+}
+
+//====================================================================================
+// Sound Functions
+
+void AJFCharacter::PlaySoundMulti_Implementation(USoundWave* Sound, bool ForcePlay)
+{
+	if(Sound == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Play Sound -- Sound Wave is Invalid|Null"));
+		return;
+	}
+
+	if(VoicePlayer->IsPlaying() && !ForcePlay)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Play Sound -- Sound is already playing."));
+		return;
+	}
+
+	VoicePlayer->SetSound(Sound);
+	VoicePlayer->Play();
+}
+
+void AJFCharacter::PlaySoundByWave(USoundWave* Sound, bool ForcePlay)
+{
+	if(!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Play Sound without Server Authority"));
+		return;
+	}
+
+	PlaySoundMulti(Sound, ForcePlay);
+}
+
+void AJFCharacter::PlaySoundByType(ESoundType Sound, bool ForcePlay)
+{
+	switch (Sound)
+	{
+		case ESoundType::Grunt:
+			PlaySoundByWave(GetAttackGruntSound(), ForcePlay);
+			break;
+		case ESoundType::LightHit:
+			PlaySoundByWave(GetLightAttackSound(), ForcePlay);
+			break;
+		case ESoundType::HeavyHit:
+			PlaySoundByWave(GetHeavyAttackSound(), ForcePlay);
+			break;
+	}
+}
+
+void AJFCharacter::PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation)
+{
+	const float RandVolume = FMath::FRandRange(0.75, 1.25);
+	const float RandPitch = FMath::FRandRange(0.75, 1.25);
+	
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound,
+		WorldLocation, FRotator::ZeroRotator,
+		RandVolume, RandPitch, 0,
+		VoicePlayer->AttenuationSettings, nullptr, this, nullptr);
+}
+
+void AJFCharacter::PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation)
+{
+	switch (Sound)
+	{
+		case ESoundType::Grunt:
+			PlaySoundByWaveAtLocation(GetAttackGruntSound(), WorldLocation);
+			break;
+		case ESoundType::LightHit:
+			PlaySoundByWaveAtLocation(GetLightAttackSound(), WorldLocation);
+			break;
+		case ESoundType::HeavyHit:
+			PlaySoundByWaveAtLocation(GetHeavyAttackSound(), WorldLocation);
+			break;
+	}
 }

@@ -49,6 +49,8 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 	UPROPERTY()
 	UHitboxTask* TickTask;
 public:
+	UMeteredGameplayAbility();
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
 	bool isToggledAbility = false;
 	

@@ -8,6 +8,11 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
+UMeteredGameplayAbility::UMeteredGameplayAbility()
+{
+	bPlayGruntSound = false;
+}
+
 bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {

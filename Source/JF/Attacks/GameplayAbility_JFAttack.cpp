@@ -8,6 +8,8 @@
 #include "DrawDebugHelpers.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "JF/JFCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UHitbox::UHitbox() : Super() {}
@@ -39,6 +41,15 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 	HitboxTask->ReadyForActivation();
 	LastTime = GetWorld()->GetTimeSeconds();
 	ResetActorsHit();
+
+	//Play 'GRUNT' Sound
+	if(bPlayGruntSound)
+	{
+		if(AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->AvatarActor))
+		{
+			Char->PlaySoundByType(ESoundType::Grunt, true);
+		}
+	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -184,9 +195,10 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 				if(AJFCharacter* SelfChar = Cast<AJFCharacter>(GetAvatarActorFromActorInfo()))
 				{
 					Char->TakeDamage(Damage, SelfChar);
+					SelfChar->PlaySoundByTypeAtLocation(AttackSound, Hitbox->GetWorldTransform().GetLocation());
 				}
 				
-				OnHitboxHit(Hitbox);
+				if(bPlayHitSound) OnHitboxHit(Hitbox);
 				ActorsHit.Add(Actor);
 			}
 		}

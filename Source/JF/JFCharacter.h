@@ -80,6 +80,14 @@ public:
 	UInputAction* Action;
 };
 
+UENUM(BlueprintType)
+enum ESoundType
+{
+	Grunt,
+	LightHit,
+	HeavyHit,
+};
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockedCharChanged, AJFCharacter*, Target);
@@ -134,13 +142,91 @@ protected:
 
 	UPROPERTY(ReplicatedUsing=onMeshVisibilityChanged)
 	bool bMeshVisibility = true;
-public:
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlaySoundMulti(USoundWave* SoundWave, bool ForcePlay);
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Sounds")
+	TArray<USoundWave*> AttackGrunts;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Sounds")
+	TArray<USoundWave*> LightHitSounds;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Sounds")
+	TArray<USoundWave*> HeavyHitSounds;
+
+	UFUNCTION(BlueprintPure)
+	USoundWave* GetAttackGruntSound()
+	{
+		if(AttackGrunts.Num() == 0) return nullptr;
+		int index = FMath::RandRange(0, AttackGrunts.Num() - 1);
+		return AttackGrunts[index];
+	}
+
+	UFUNCTION(BlueprintPure)
+	USoundWave* GetLightAttackSound()
+	{
+		if(LightHitSounds.Num() == 0) return nullptr;
+		int index = FMath::RandRange(0, LightHitSounds.Num() - 1);
+		return LightHitSounds[index];
+	}
+
+	UFUNCTION(BlueprintPure)
+	USoundWave* GetHeavyAttackSound()
+	{
+		if(HeavyHitSounds.Num() == 0) return nullptr;
+		int index = FMath::RandRange(0, HeavyHitSounds.Num() - 1);
+		return HeavyHitSounds[index];
+	}
+
+	/**
+	 * SERVER ONLY FUNCTION
+	 * Plays a Sound for this character,
+	 * If other sound is playing, does not play unless @param ForcePlay is true
+	 * @param Sound The Sound to play
+	 * @param ForcePlay If Sound should always play
+	 */
+	UFUNCTION(BlueprintCallable, Category="Audio")
+	void PlaySoundByWave(USoundWave* Sound, bool ForcePlay = false);
+	/**
+	 * SERVER ONLY FUNCTION
+	 * Plays a Sound for this character,
+	 * If other sound is playing, does not play unless @param ForcePlay is true
+	 * @param Sound The Sound Type -- Auto Selects Random From Sound List
+	 * @param ForcePlay If Sound should always play
+	 */
+	UFUNCTION(BlueprintCallable, Category="Audio")
+	void PlaySoundByType(ESoundType Sound, bool ForcePlay = false);
+
+	/**
+	 * SERVER ONLY FUNCTION
+	 * Plays a Sound for this character,
+	 * If other sound is playing, does not play unless @param ForcePlay is true
+	 * @param Sound The Sound to play
+	 * @param WorldLocation Location of the object
+	 */
+	UFUNCTION(BlueprintCallable, Category="Audio")
+	void PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation);
+	/**
+	 * SERVER ONLY FUNCTION
+	 * Plays a Sound for this character,
+	 * If other sound is playing, does not play unless @param ForcePlay is true
+	 * @param Sound The Sound Type -- Auto Selects Random From Sound List
+	 * @param WorldLocation Location of the object
+	 */
+	UFUNCTION(BlueprintCallable, Category="Audio")
+	void PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation);
+
+	//========================================================================================== COMPONENTS
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
 	UNiagaraSystem* BloodFX;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
     UJFASComponent* AbilitySystemComponent;
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	UAudioComponent* VoicePlayer;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character|Abilities")
     TArray<UAbilityData*> CharacterAbilities;
