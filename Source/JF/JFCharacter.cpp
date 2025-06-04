@@ -1276,6 +1276,22 @@ void AJFCharacter::PlaySoundMulti_Implementation(USoundWave* Sound, bool ForcePl
 	VoicePlayer->Play();
 }
 
+void AJFCharacter::PlaySoundMultiLocation_Implementation(USoundWave* SoundWave, FVector Location)
+{
+	const float RandVolume = FMath::FRandRange(0.75, 1.25);
+	const float RandPitch = FMath::FRandRange(0.75, 1.25);
+	
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundWave,
+		Location, FRotator::ZeroRotator,
+		RandVolume, RandPitch, 0,
+		VoicePlayer->AttenuationSettings, nullptr, this, nullptr);
+}
+
+void AJFCharacter::StopSoundMulti_Implementation()
+{
+	VoicePlayer->Stop();
+}
+
 void AJFCharacter::PlaySoundByWave(USoundWave* Sound, bool ForcePlay)
 {
 	if(!HasAuthority())
@@ -1305,13 +1321,7 @@ void AJFCharacter::PlaySoundByType(ESoundType Sound, bool ForcePlay)
 
 void AJFCharacter::PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation)
 {
-	const float RandVolume = FMath::FRandRange(0.75, 1.25);
-	const float RandPitch = FMath::FRandRange(0.75, 1.25);
-	
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound,
-		WorldLocation, FRotator::ZeroRotator,
-		RandVolume, RandPitch, 0,
-		VoicePlayer->AttenuationSettings, nullptr, this, nullptr);
+	PlaySoundMultiLocation(Sound, WorldLocation);
 }
 
 void AJFCharacter::PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation)

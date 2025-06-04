@@ -108,7 +108,7 @@ void UMeteredGameplayAbility::onTickSelf()
 	{
 		//Take Meter
 		float Meter = Character->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
-		if(ForceEndOnMeterZero && Meter <= 0)
+		if(ForceEndOnMeterZero && Meter <= 0 && MeterPerSecond > 0)
 		{
 			if(isToggledAbility)  K2_ActivateAbility();
 			else  K2_EndAbility();

@@ -65,6 +65,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600), Category="Ability")
 	float MeterPerSecond = 0.f;
 
+	//If Not Toggled Ability
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
 	bool ForceEndOnMeterZero = true;
 

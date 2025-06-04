@@ -145,6 +145,12 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlaySoundMulti(USoundWave* SoundWave, bool ForcePlay);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlaySoundMultiLocation(USoundWave* SoundWave, FVector Location);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void StopSoundMulti();
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Sounds")
 	TArray<USoundWave*> AttackGrunts;
@@ -216,6 +222,12 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="Audio")
 	void PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation);
+	/**
+	 * SERVER ONLY FUNCTION
+	 * Stops The Sound The Voice Player is Playing.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Audio")
+	void StopSound() {StopSoundMulti();}
 
 	//========================================================================================== COMPONENTS
 	
