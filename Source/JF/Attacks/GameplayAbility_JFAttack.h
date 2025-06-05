@@ -58,6 +58,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bDebug = false;
 
+	UFUNCTION(BlueprintPure)
 	FTransform GetWorldTransform()
 	{
 		FVector _Position = Location;

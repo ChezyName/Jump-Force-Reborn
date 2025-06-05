@@ -195,10 +195,10 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 				if(AJFCharacter* SelfChar = Cast<AJFCharacter>(GetAvatarActorFromActorInfo()))
 				{
 					Char->TakeDamage(Damage, SelfChar);
-					SelfChar->PlaySoundByTypeAtLocation(AttackSound, Hitbox->GetWorldTransform().GetLocation());
+					if(bPlayHitSound) SelfChar->PlaySoundByTypeAtLocation(AttackSound, Hitbox->GetWorldTransform().GetLocation());
 				}
 				
-				if(bPlayHitSound) OnHitboxHit(Hitbox);
+				OnHitboxHit(Hitbox);
 				ActorsHit.Add(Actor);
 			}
 		}

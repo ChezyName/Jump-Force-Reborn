@@ -380,7 +380,9 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 	if (Controller != nullptr && !isChargingMeter()
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(CantMoveTag)
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag))
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)
+	)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -600,7 +602,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	MeterChargeFX->SetActive(isChargingMeter());
 
 	//Player Look At
-	if(isLockedOn && LockOnCharacter)
+	if(isLockedOn && LockOnCharacter && !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag))
 	{
 		//Player Look At Target
 		FVector PlayerLocation = GetActorLocation();
@@ -723,6 +725,7 @@ bool AJFCharacter::isChargingMeter()
 	
 	return !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
 	&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)
+	&& !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)
 	&& isTryingMeterCharge;
 }
 
@@ -1112,7 +1115,8 @@ void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter*
 void AJFCharacter::Parry_Implementation()
 {
 	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)) return;
+		AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)) return;
 
 	//Cannot Move for First Few Frames of Parry
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
@@ -1276,10 +1280,10 @@ void AJFCharacter::PlaySoundMulti_Implementation(USoundWave* Sound, bool ForcePl
 	VoicePlayer->Play();
 }
 
-void AJFCharacter::PlaySoundMultiLocation_Implementation(USoundWave* SoundWave, FVector Location)
+void AJFCharacter::PlaySoundMultiLocation_Implementation(USoundWave* SoundWave, FVector Location, FVector2D VolumeRange, FVector2D PitchRange)
 {
-	const float RandVolume = FMath::FRandRange(0.75, 1.25);
-	const float RandPitch = FMath::FRandRange(0.75, 1.25);
+	const float RandVolume = FMath::FRandRange(VolumeRange.X, VolumeRange.Y);
+	const float RandPitch = FMath::FRandRange(PitchRange.X, PitchRange.Y);
 	
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundWave,
 		Location, FRotator::ZeroRotator,
@@ -1319,23 +1323,23 @@ void AJFCharacter::PlaySoundByType(ESoundType Sound, bool ForcePlay)
 	}
 }
 
-void AJFCharacter::PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation)
+void AJFCharacter::PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation, FVector2D VolumeRange, FVector2D PitchRange)
 {
-	PlaySoundMultiLocation(Sound, WorldLocation);
+	PlaySoundMultiLocation(Sound, WorldLocation, VolumeRange, PitchRange);
 }
 
-void AJFCharacter::PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation)
+void AJFCharacter::PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation, FVector2D VolumeRange, FVector2D PitchRange)
 {
 	switch (Sound)
 	{
 		case ESoundType::Grunt:
-			PlaySoundByWaveAtLocation(GetAttackGruntSound(), WorldLocation);
+			PlaySoundByWaveAtLocation(GetAttackGruntSound(), WorldLocation, VolumeRange, PitchRange);
 			break;
 		case ESoundType::LightHit:
-			PlaySoundByWaveAtLocation(GetLightAttackSound(), WorldLocation);
+			PlaySoundByWaveAtLocation(GetLightAttackSound(), WorldLocation, VolumeRange, PitchRange);
 			break;
 		case ESoundType::HeavyHit:
-			PlaySoundByWaveAtLocation(GetHeavyAttackSound(), WorldLocation);
+			PlaySoundByWaveAtLocation(GetHeavyAttackSound(), WorldLocation, VolumeRange, PitchRange);
 			break;
 	}
 }

@@ -112,6 +112,7 @@ public:
 	static const inline FGameplayTag ParryStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun"));
 	static const inline FGameplayTag HitStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.HitStun"));
 	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
+	static const inline FGameplayTag GrabbedTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false);
@@ -147,7 +148,10 @@ protected:
 	void PlaySoundMulti(USoundWave* SoundWave, bool ForcePlay);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void PlaySoundMultiLocation(USoundWave* SoundWave, FVector Location);
+	void PlaySoundMultiLocation(USoundWave* SoundWave, FVector Location,
+		FVector2D VolumeRange = FVector2D(0.75, 1.25),
+		FVector2D PitchRange = FVector2D(0.75, 1.25)
+	);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void StopSoundMulti();
@@ -192,7 +196,7 @@ public:
 	 * @param Sound The Sound to play
 	 * @param ForcePlay If Sound should always play
 	 */
-	UFUNCTION(BlueprintCallable, Category="Audio")
+	UFUNCTION(BlueprintCallable, Category="Audio", meta=(AdvancedDisplay = "3", UnsafeDuringActorConstruction = "true", Keywords = "play"))
 	void PlaySoundByWave(USoundWave* Sound, bool ForcePlay = false);
 	/**
 	 * SERVER ONLY FUNCTION
@@ -201,27 +205,39 @@ public:
 	 * @param Sound The Sound Type -- Auto Selects Random From Sound List
 	 * @param ForcePlay If Sound should always play
 	 */
-	UFUNCTION(BlueprintCallable, Category="Audio")
+	UFUNCTION(BlueprintCallable, Category="Audio", meta=(AdvancedDisplay = "3", UnsafeDuringActorConstruction = "true", Keywords = "play"))
 	void PlaySoundByType(ESoundType Sound, bool ForcePlay = false);
 
 	/**
 	 * SERVER ONLY FUNCTION
 	 * Plays a Sound for this character,
-	 * If other sound is playing, does not play unless @param ForcePlay is true
 	 * @param Sound The Sound to play
 	 * @param WorldLocation Location of the object
+	 * @param VolumeRange the range for the random volume range
+	 * @param PitchRange the range for the random pitch range
 	 */
-	UFUNCTION(BlueprintCallable, Category="Audio")
-	void PlaySoundByWaveAtLocation(USoundWave* Sound, FVector WorldLocation);
+	UFUNCTION(BlueprintCallable, Category="Audio", meta=(AdvancedDisplay = "3", UnsafeDuringActorConstruction = "true", Keywords = "play"))
+	void PlaySoundByWaveAtLocation(
+		USoundWave* Sound,
+		FVector WorldLocation,
+		FVector2D VolumeRange = FVector2D(0.75, 1.25),
+		FVector2D PitchRange = FVector2D(0.75, 1.25)
+	);
 	/**
 	 * SERVER ONLY FUNCTION
 	 * Plays a Sound for this character,
-	 * If other sound is playing, does not play unless @param ForcePlay is true
 	 * @param Sound The Sound Type -- Auto Selects Random From Sound List
 	 * @param WorldLocation Location of the object
+	 * @param VolumeRange the range for the random volume range
+	 * @param PitchRange the range for the random pitch range
 	 */
-	UFUNCTION(BlueprintCallable, Category="Audio")
-	void PlaySoundByTypeAtLocation(ESoundType Sound, FVector WorldLocation);
+	UFUNCTION(BlueprintCallable, Category="Audio", meta=(AdvancedDisplay = "3", UnsafeDuringActorConstruction = "true", Keywords = "play"))
+	void PlaySoundByTypeAtLocation(
+		ESoundType Sound,
+		FVector WorldLocation,
+		FVector2D VolumeRange = FVector2D(0.75, 1.25),
+		FVector2D PitchRange = FVector2D(0.75, 1.25)
+	);
 	/**
 	 * SERVER ONLY FUNCTION
 	 * Stops The Sound The Voice Player is Playing.
