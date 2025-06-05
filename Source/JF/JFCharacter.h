@@ -26,6 +26,7 @@ struct FInputActionValue;
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/2.5f;
+constexpr float METER_PER_HIT = 0.25f;
 
 //Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
@@ -105,6 +106,7 @@ private:
 	float TSHitTime = 0.f;
 	void TakeTSHit();
 	void TickTSHits(float DeltaSeconds);
+	void DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage);
 public:
 	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));

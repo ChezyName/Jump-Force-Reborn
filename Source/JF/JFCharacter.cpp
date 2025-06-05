@@ -972,6 +972,9 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 
 	//FXS - Scale Damage (Blood FX) for Project - Seals
 	TakeDamageFXs(Damage);
+
+	//Give other player some meter
+	DamageDealerGiveMeter(DamageDealer, Damage);
 	
 	if(!IgnoreHitStun)
 	{
@@ -988,6 +991,18 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	}
 
 	if(cHealth <= 0) OnDeath(DamageDealer);
+}
+
+void AJFCharacter::DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage)
+{
+	if(!HasAuthority() || Dealer == nullptr || Damage <= 0) return;
+
+	//Take Meter
+	float Meter = Dealer->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
+	Meter += Damage * METER_PER_HIT;
+	Meter = FMath::Clamp(Meter, 0, MAX_METER);
+
+	Dealer->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), Meter);
 }
 
 void AJFCharacter::TakeDamageFXs_Implementation(float Damage)
