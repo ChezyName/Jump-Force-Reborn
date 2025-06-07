@@ -40,6 +40,9 @@ AJFCharacter::AJFCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	GetMesh()->CustomDepthStencilValue = 1;
+	GetMesh()->bRenderCustomDepth = true;
+
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 99999.f, 0.0f); // ...at this rotation rate
@@ -106,6 +109,15 @@ AJFCharacter::AJFCharacter()
 	//Position Parry VFXs
 	RParryEyes->SetRelativeLocation(FVector(5, -11, 10));
 	LParryEyes->SetRelativeLocation(FVector(-5, -11, 10));
+
+	//Load TS FX
+	static ConstructorHelpers::FObjectFinder<UMaterial>
+		TWMaterial(TEXT("/Script/Engine.Material'/Game/Characters/DIO/TimeStop_PP.TimeStop_PP'"));
+	if (TWMaterial.Succeeded() && GetFollowCamera())
+	{
+		FPostProcessSettings& PPS = GetFollowCamera()->PostProcessSettings;
+		PPS.WeightedBlendables.Array.Add(FWeightedBlendable(0.f, TWMaterial.Object));
+	}
 
 	//Load Dash Ability
 	static ConstructorHelpers::FObjectFinder<UAbilityData>
@@ -511,6 +523,8 @@ void AJFCharacter::InitAbilitiesInputSys()
 
 void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 {
+	TimeStopEffects(isTimeStopped);
+	
 	if(isTimeStopped && Char != this)
 	{
 		//We Are The TS Target
@@ -546,6 +560,16 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 			//Do TS Hits
 			
 		}
+	}
+}
+
+void AJFCharacter::TimeStopEffects_Implementation(bool isTimeStopped)
+{
+	//Time Stop Effects
+	FPostProcessSettings& PPS = GetFollowCamera()->PostProcessSettings;
+	if(PPS.WeightedBlendables.Array.Num() > 0)
+	{
+		PPS.WeightedBlendables.Array[0].Weight = isTimeStopped ? 1.f : 0.f;
 	}
 }
 

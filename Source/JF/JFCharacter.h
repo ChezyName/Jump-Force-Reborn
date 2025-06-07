@@ -26,7 +26,7 @@ struct FInputActionValue;
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/2.5f;
-constexpr float METER_PER_HIT = 0.25f;
+constexpr float METER_PER_HIT = 0.05f;
 
 //Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
@@ -99,8 +99,6 @@ class AJFCharacter : public ACharacter, public IAbilitySystemInterface
 	GENERATED_BODY()
 private:
 	UPROPERTY()
-	AJFGameState* GS;
-	UPROPERTY()
 	TArray<FTimeStopHit> TimeStopHits;
 	UPROPERTY()
 	float TSHitTime = 0.f;
@@ -116,6 +114,9 @@ public:
 	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	static const inline FGameplayTag GrabbedTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 
+	UPROPERTY(BlueprintReadOnly)
+	AJFGameState* GS;
+	
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false);
 
@@ -570,6 +571,8 @@ protected:
 	bool isTSEventBound = false;
 	bool wasCharStopped = false;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void TimeStopEffects(bool isTimeStopped);
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
