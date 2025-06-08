@@ -63,10 +63,10 @@ struct FTimeStopHit
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	AJFCharacter* Char;
+	AJFCharacter* Char = nullptr;
 
 	UPROPERTY()
-	float Damage;
+	float Damage = 0;
 };
 
 USTRUCT()
@@ -78,7 +78,7 @@ public:
 	FGameplayAbilitySpecHandle Handle;
 	
 	UPROPERTY()
-	UInputAction* Action;
+	UInputAction* Action = nullptr;
 };
 
 UENUM(BlueprintType)

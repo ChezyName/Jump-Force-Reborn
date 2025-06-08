@@ -91,16 +91,16 @@ AJFCharacter::AJFCharacter()
 
 	//Meter Charge FX
 	MeterChargeFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MeterChargeFX"));
-	MeterChargeFX->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	MeterChargeFX->SetupAttachment(GetMesh());
 	MeterChargeFX->SetAutoActivate(false);
 
 	//Parry Eyes Effect (Anime Glowy Eyes)
 	RParryEyes = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ParryEyes_R"));
-	RParryEyes->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("head"));
+	RParryEyes->SetupAttachment(GetMesh(), "head");
 	RParryEyes->SetAutoActivate(true);
 	
 	LParryEyes = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ParryEyes_L"));
-	LParryEyes->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("head"));
+	LParryEyes->SetupAttachment(GetMesh(), "head");
 	LParryEyes->SetAutoActivate(true);
 
 	LParryEyes->SetVisibility(false);
