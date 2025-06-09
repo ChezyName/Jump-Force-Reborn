@@ -13,6 +13,8 @@ FGameplayTag UJFGameInstance::GrabbedTag;
 
 void UJFGameInstance::Init()
 {
+	UE_LOG(LogTemp, Warning, TEXT("UJFGameInstance::Init called"));
+
 	DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
