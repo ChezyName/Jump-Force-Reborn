@@ -10,6 +10,7 @@
 #include "JF/JFCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
+#include "JF/Game/JFGameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UHitbox::UHitbox() : Super() {}
@@ -25,8 +26,8 @@ UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
 
 	//Always 'Character.Status.DoingSomething'
 	FGameplayTagContainer Tags;
-	Tags.AddTag(AJFCharacter::DoingSomethingTag);
-	Tags.AddTag(AJFCharacter::GAHitStunTag);
+	Tags.AddTag(UJFGameInstance::DoingSomethingTag);
+	Tags.AddTag(UJFGameInstance::GAHitStunTag);
 	
 	SetAssetTags(Tags);
 	ActivationBlockedTags = Tags;

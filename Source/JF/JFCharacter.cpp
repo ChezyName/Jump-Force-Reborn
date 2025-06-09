@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright ChezyName. All Rights Reserved.
 
 #include "JFCharacter.h"
 
@@ -21,6 +21,7 @@
 #include "NiagaraSystem.h"
 #include "InputMappingContext.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Game/JFGameInstance.h"
 #include "Game/JFGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -390,10 +391,10 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 	UpdatePlayerMovementVector(MovementVector);
 
 	if (Controller != nullptr && !isChargingMeter()
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(CantMoveTag)
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)
-		&& !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::DoingSomethingTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::CantMoveTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)
 	)
 	{
 		// find out which way is forward
@@ -530,11 +531,11 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 		//We Are The TS Target
 		if(HasAuthority())
 		{
-			AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
-			AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+			AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
 			
-			AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
-			AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
+			AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::CantMoveTag);
 			wasCharStopped = true;
 		}
 
@@ -546,11 +547,11 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 	{
 		if(wasCharStopped)
 		{
-			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
-			AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+			AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
 			
-			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
-			AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
+			AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::CantMoveTag);
 		}
 
 		GetMesh()->bPauseAnims = false;
@@ -626,7 +627,7 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	MeterChargeFX->SetActive(isChargingMeter());
 
 	//Player Look At
-	if(isLockedOn && LockOnCharacter && !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag))
+	if(isLockedOn && LockOnCharacter && !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag))
 	{
 		//Player Look At Target
 		FVector PlayerLocation = GetActorLocation();
@@ -747,9 +748,9 @@ bool AJFCharacter::isChargingMeter()
 {
 	if(!GetAbilitySystemComponent()) return false;
 	
-	return !AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag)
-	&& !AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag)
-	&& !AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)
+	return !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::DoingSomethingTag)
+	&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag)
+	&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)
 	&& isTryingMeterCharge;
 }
 
@@ -974,7 +975,7 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 		*GetName(), Damage);
 
 	//Check for Parry
-	if(AbilitySystemComponent->HasMatchingGameplayTag(ParryTag))
+	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryTag))
 	{
 		//Parry Attack & End Parry
 		DamageDealer->onParried(Damage, this);
@@ -1004,9 +1005,9 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	{
 		//Hit Stun
 		HitStunTime = HIT_STUN_TIME;
-		AbilitySystemComponent->AddGameplayCue(HitStunTag);
-		AbilitySystemComponent->AddLooseGameplayTag(GAHitStunTag);
-		AbilitySystemComponent->AddReplicatedLooseGameplayTag(GAHitStunTag);
+		AbilitySystemComponent->AddGameplayCue(UJFGameInstance::HitStunTag);
+		AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::GAHitStunTag);
+		AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::GAHitStunTag);
 
 		//Knock Back
 		float LaunchBackVel = FMath::Clamp(Damage * HIT_STUN_LAUNCH_VEL, 0.f, 1000.f);
@@ -1153,16 +1154,16 @@ void AJFCharacter::setLockedOnServer_Implementation(bool isLocked, AJFCharacter*
 
 void AJFCharacter::Parry_Implementation()
 {
-	if(AbilitySystemComponent->HasMatchingGameplayTag(DoingSomethingTag) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(GrabbedTag)) return;
+	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::DoingSomethingTag) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)) return;
 
 	//Cannot Move for First Few Frames of Parry
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
 	
-	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
-	AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
+	AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+	AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::CantMoveTag);
 
 	//Parry Timer
 	ParryTime = PARRY_PRE_LAG + PARRY_WINDOW + PARRY_POST_LAG;
@@ -1186,8 +1187,8 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 	{
 		//Start Parry Time
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Green, "Parry Window Started");
-		AbilitySystemComponent->AddReplicatedLooseGameplayTag(ParryTag);
-		AbilitySystemComponent->AddLooseGameplayTag(ParryTag);
+		AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::ParryTag);
+		AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::ParryTag);
 		bStartParryWindow = true;
 	}
 
@@ -1195,8 +1196,8 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 	{
 		//Parry Post Lag - End Parry
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Yellow, "Parry Window Ended");
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(ParryTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(ParryTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::ParryTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::ParryTag);
 		bEndParryWindow = true;
 	}
 
@@ -1204,10 +1205,10 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 	{
 		//End Parry (DoingSomething)
 		GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red, "Parry is Over");
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::CantMoveTag);
 		ParryEndEvent();
 		bIsParrying = false;
 	}
@@ -1222,13 +1223,13 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 		GetName() + " Has Been Stunned due to Parry.");
 	
 	//When Character Parries US -> Cannot Do Anything for Duration (Stunned)
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(CantMoveTag);
-	AbilitySystemComponent->AddLooseGameplayTag(CantMoveTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
+	AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::CantMoveTag);
 	
-	AbilitySystemComponent->AddReplicatedLooseGameplayTag(DoingSomethingTag);
-	AbilitySystemComponent->AddLooseGameplayTag(DoingSomethingTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+	AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
 	
-	AbilitySystemComponent->AddGameplayCue(ParryStunTag);
+	AbilitySystemComponent->AddGameplayCue(UJFGameInstance::ParryStunTag);
 
 	StunTime = PARRY_STUN_TIME;
 	isStunned = true;
@@ -1251,20 +1252,20 @@ void AJFCharacter::TickStun(float DeltaSeconds, bool ForceEnd)
 	{
 		isStunned = false;
 
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(CantMoveTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(CantMoveTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::CantMoveTag);
 	
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(DoingSomethingTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(DoingSomethingTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
 		
-		AbilitySystemComponent->RemoveGameplayCue(ParryStunTag);
+		AbilitySystemComponent->RemoveGameplayCue(UJFGameInstance::ParryStunTag);
 	}
 }
 
 void AJFCharacter::TickHitStun(float DeltaSeconds)
 {
 	if(!HasAuthority() ||
-		!AbilitySystemComponent->HasMatchingGameplayTag(GAHitStunTag))
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag))
 	{
 		HitStunTime = 0.f;
 		return;
@@ -1274,9 +1275,9 @@ void AJFCharacter::TickHitStun(float DeltaSeconds)
 
 	if(HitStunTime <= 0)
 	{
-		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(GAHitStunTag);
-		AbilitySystemComponent->RemoveLooseGameplayTag(GAHitStunTag);
-		AbilitySystemComponent->RemoveGameplayCue(HitStunTag);
+		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::GAHitStunTag);
+		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::GAHitStunTag);
+		AbilitySystemComponent->RemoveGameplayCue(UJFGameInstance::HitStunTag);
 	}
 }
 

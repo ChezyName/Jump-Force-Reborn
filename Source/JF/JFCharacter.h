@@ -106,14 +106,6 @@ private:
 	void TickTSHits(float DeltaSeconds);
 	void DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage);
 public:
-	static const inline FGameplayTag DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
-	static const inline FGameplayTag ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
-	static const inline FGameplayTag CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
-	static const inline FGameplayTag ParryStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun"));
-	static const inline FGameplayTag HitStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.HitStun"));
-	static const inline FGameplayTag GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
-	static const inline FGameplayTag GrabbedTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
-
 	UPROPERTY(BlueprintReadOnly)
 	AJFGameState* GS;
 	
