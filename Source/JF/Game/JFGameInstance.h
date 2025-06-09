@@ -14,6 +14,8 @@ UCLASS()
 class JF_API UJFGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
+private:
+	FString Username;
 public:
 	static FGameplayTag DoingSomethingTag; // FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static FGameplayTag ParryTag;			// FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
@@ -23,6 +25,11 @@ public:
 	static FGameplayTag GAHitStunTag;		// FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	static FGameplayTag GrabbedTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 
+	UFUNCTION(BlueprintCallable)
+	void SetUsername(FString NewUsername) { Username = NewUsername;}
+
+	UFUNCTION(BlueprintPure)
+	FString GetUsername(){return Username;}
 
 	virtual void Init() override;
 };
