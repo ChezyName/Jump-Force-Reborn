@@ -26,6 +26,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+class UAbilityData;
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -627,7 +628,10 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	MeterChargeFX->SetActive(isChargingMeter());
 
 	//Player Look At
-	if(isLockedOn && LockOnCharacter && !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag))
+	if(isLockedOn && LockOnCharacter &&
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag) &&
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryStunTag) &&
+		!GS->IsTimeStopped())
 	{
 		//Player Look At Target
 		FVector PlayerLocation = GetActorLocation();

@@ -18,3 +18,8 @@ void UBlueprintTravel::SeamlessTravel(const UObject* WorldContextObject, const T
 		World->ServerTravel(LevelName,false,false);
 	}
 }
+
+FString UBlueprintTravel::GetObjectPath(TSoftClassPtr<UObject> SoftClass)
+{
+	return SoftClass.ToString();
+}

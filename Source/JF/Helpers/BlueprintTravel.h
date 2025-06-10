@@ -16,4 +16,7 @@ class JF_API UBlueprintTravel : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContextObject", AdvancedDisplay = "2", DisplayName = "ServerTravel"), Category="Game")
 	static void SeamlessTravel(const UObject* WorldContextObject,const TSoftObjectPtr<UWorld> Level);
+
+	UFUNCTION(BlueprintCallable, Category="Object")
+	static FString GetObjectPath(TSoftClassPtr<UObject> SoftClass);
 };
