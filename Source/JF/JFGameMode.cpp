@@ -2,6 +2,7 @@
 
 #include "JFGameMode.h"
 #include "JFCharacter.h"
+#include "Game/JFPlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 AJFGameMode::AJFGameMode()
@@ -12,4 +13,20 @@ AJFGameMode::AJFGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+}
+
+UClass* AJFGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	AJFPlayerState* PS = InController->GetPlayerState<AJFPlayerState>();
+	if(PS && PS->GetHero() && PS->GetHero()->Actor.IsValid())
+	{
+		//Load Actor
+		UClass* LoadedHero = PS->GetHero()->Actor.LoadSynchronous();
+		if (LoadedHero)
+		{
+			return LoadedHero;
+		}
+	}
+	
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }

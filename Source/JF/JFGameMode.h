@@ -13,6 +13,8 @@ class AJFGameMode : public AGameModeBase
 
 public:
 	AJFGameMode();
+
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 };
 
 
