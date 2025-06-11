@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Engine/GameInstance.h"
+#include "GameFramework/SaveGame.h"
 #include "JFGameInstance.generated.h"
 
 /**
@@ -26,10 +27,29 @@ public:
 	static FGameplayTag GrabbedTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 
 	UFUNCTION(BlueprintCallable)
-	void SetUsername(FString NewUsername) { Username = NewUsername;}
+	void SetUsername(FString NewUsername) { Username = NewUsername; Save();}
 
 	UFUNCTION(BlueprintPure)
 	FString GetUsername(){return Username;}
 
+	void Save();
+
+	void Load();
+
 	virtual void Init() override;
+
+private:
+	FString SaveSlot = TEXT("UserSave");
+	int32 UserIndex = 0;
+};
+
+
+UCLASS()
+class JF_API UUsernameSaveGame : public USaveGame
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere)
+	FString Username;
 };
