@@ -25,8 +25,8 @@ struct FInputActionValue;
 //Meter
 //Each bar is 100, 6x = 600
 constexpr float MAX_METER = 600.f;
-constexpr float METER_PER_SECOND = 100.f/2.5f;
-constexpr float METER_PER_HIT = 0.05f;
+constexpr float METER_PER_SECOND = 100.f/1.f;
+constexpr float METER_PER_HIT = 0.15f;
 
 //Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
@@ -48,8 +48,8 @@ constexpr float PARRY_PRE_LAG = 0.05f;
 constexpr float PARRY_WINDOW = 0.15f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
-constexpr float PARRY_STUN_TIME = 0.5f;
-constexpr float HIT_STUN_TIME = 0.15f;
+constexpr float PARRY_STUN_TIME = 1.f;
+constexpr float HIT_STUN_TIME = 0.25f;
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
 constexpr float TIME_STOP_HIT_DELAY = 0.01; //How Long Between Attacks in TS Can We Do
