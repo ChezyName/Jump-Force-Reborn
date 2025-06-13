@@ -525,6 +525,9 @@ void AJFCharacter::InitAbilitiesInputSys()
 
 void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 {
+	UKismetSystemLibrary::PrintString(GetWorld(),
+	"User [" + Char->GetName() + "] " + (isTimeStopped ? "Has Time Stopped" : "Has Time Resumed"), true,
+	true, FLinearColor::Yellow, 2, FName("TargetLock"));
 	TimeStopEffects(isTimeStopped);
 	
 	if(isTimeStopped && Char != this)
@@ -532,11 +535,8 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 		//We Are The TS Target
 		if(HasAuthority())
 		{
-			AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
-			AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
-			
-			AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
-			AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::CantMoveTag);
+			AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::TimestopTag);
+			AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::TimestopTag);
 			wasCharStopped = true;
 		}
 
@@ -548,20 +548,12 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 	{
 		if(wasCharStopped)
 		{
-			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
-			AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
-			
-			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
-			AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::CantMoveTag);
+			AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::TimestopTag);
+			AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::TimestopTag);
 		}
 
 		GetMesh()->bPauseAnims = false;
-
-		if(HasAuthority())
-		{
-			//Do TS Hits
-			
-		}
+		GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
 	}
 }
 
@@ -631,7 +623,9 @@ void AJFCharacter::Tick(float DeltaSeconds)
 	if(isLockedOn && LockOnCharacter &&
 		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag) &&
 		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryStunTag) &&
-		!GS->IsTimeStopped())
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::TimestopTag) &&
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::HitStunTag) &&
+		!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::CantLockTag))
 	{
 		//Player Look At Target
 		FVector PlayerLocation = GetActorLocation();
@@ -755,6 +749,7 @@ bool AJFCharacter::isChargingMeter()
 	return !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::DoingSomethingTag)
 	&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag)
 	&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)
+	&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::TimestopTag)
 	&& isTryingMeterCharge;
 }
 

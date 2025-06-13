@@ -8,7 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-UMeteredGameplayAbility::UMeteredGameplayAbility()
+UMeteredGameplayAbility::UMeteredGameplayAbility() : Super()
 {
 	bPlayGruntSound = false;
 }

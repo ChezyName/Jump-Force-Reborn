@@ -14,20 +14,29 @@ void AJFGameState::RepTimeStop_Implementation(bool isTimeStopped, AJFCharacter* 
 
 void AJFGameState::StopTime(AJFCharacter* _TimeStopper)
 {
-	if(bIsTimeStopped) return;
-
-	bIsTimeStopped = true;
-	TimeStopper = _TimeStopper;
-	RepTimeStop(bIsTimeStopped, TimeStopper);
+	ServerDoTimestop(_TimeStopper, true);
 }
 
 void AJFGameState::ResumeTime()
 {
-	if(!bIsTimeStopped) return;
+	ServerDoTimestop(nullptr, false);
+}
 
-	bIsTimeStopped = false;
-	RepTimeStop(bIsTimeStopped, TimeStopper);
-	TimeStopper = nullptr;
+void AJFGameState::ServerDoTimestop_Implementation(AJFCharacter* _TimeStopper, bool Timestopping)
+{
+	if(bIsTimeStopped && !Timestopping)
+	{
+		//Resume Time
+		bIsTimeStopped = false;
+		RepTimeStop(bIsTimeStopped, TimeStopper);
+		TimeStopper = nullptr;
+	}
+	else if(Timestopping)
+	{
+		bIsTimeStopped = true;
+		TimeStopper = _TimeStopper;
+		RepTimeStop(bIsTimeStopped, TimeStopper);
+	}
 }
 
 void AJFGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

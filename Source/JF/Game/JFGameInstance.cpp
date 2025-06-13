@@ -7,10 +7,12 @@
 FGameplayTag UJFGameInstance::DoingSomethingTag;
 FGameplayTag UJFGameInstance::ParryTag;
 FGameplayTag UJFGameInstance::CantMoveTag;
+FGameplayTag UJFGameInstance::CantLockTag;
 FGameplayTag UJFGameInstance::ParryStunTag;
 FGameplayTag UJFGameInstance::HitStunTag;
 FGameplayTag UJFGameInstance::GAHitStunTag;
 FGameplayTag UJFGameInstance::GrabbedTag;
+FGameplayTag UJFGameInstance::TimestopTag;
 
 void UJFGameInstance::Save()
 {
@@ -42,10 +44,12 @@ void UJFGameInstance::Init()
 	DoingSomethingTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	ParryTag = FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	CantMoveTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
+	CantLockTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.CantLock"));
 	ParryStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun"));
 	HitStunTag = FGameplayTag::RequestGameplayTag(FName("GameplayCue.HitStun"));
 	GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	GrabbedTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
+	TimestopTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped"));
 	
 	Load();
 	

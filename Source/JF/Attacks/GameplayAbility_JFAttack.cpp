@@ -24,13 +24,27 @@ UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
 	bReplicateInputDirectly = true;
 	bIsCancelable = true;
 
-	//Always 'Character.Status.DoingSomething'
-	FGameplayTagContainer Tags;
-	Tags.AddTag(UJFGameInstance::DoingSomethingTag);
-	Tags.AddTag(UJFGameInstance::GAHitStunTag);
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.HitStun")));
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped")));
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun")));
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed")));
+}
+
+void UGameplayAbility_JFAttack::PostInitProperties()
+{
+	/*
+	if (HasAnyFlags(RF_ClassDefaultObject))
+	{
+		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
+		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.HitStun")));
+		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped")));
+		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun")));
+		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed")));
+	}
+	*/
 	
-	SetAssetTags(Tags);
-	ActivationBlockedTags = Tags;
+	Super::PostInitProperties();
 }
 
 void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

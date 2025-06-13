@@ -91,6 +91,7 @@ class JF_API UGameplayAbility_JFAttack : public UGameplayAbility
 	
 public:
 	UGameplayAbility_JFAttack();
+	virtual void PostInitProperties() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
 	float Damage = 150.f;

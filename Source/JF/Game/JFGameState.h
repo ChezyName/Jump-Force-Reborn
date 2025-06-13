@@ -36,6 +36,9 @@ private:
 	UPROPERTY(Replicated)
 	bool bIsTimeStopped = false;
 
+	UFUNCTION(Server, Reliable)
+	void ServerDoTimestop(AJFCharacter* _TimeStopper, bool Timestopping = false);
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void RepTimeStop(bool isTimeStopped, AJFCharacter* _TimeStopper);
 

@@ -21,10 +21,12 @@ public:
 	static FGameplayTag DoingSomethingTag; // FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething"));
 	static FGameplayTag ParryTag;			// FGameplayTag::RequestGameplayTag(FName("Character.Attacking.Parrying"));
 	static FGameplayTag CantMoveTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.CantMove"));
+	static FGameplayTag CantLockTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.CantLock"));
 	static FGameplayTag ParryStunTag;		// FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun"));
 	static FGameplayTag HitStunTag;		// FGameplayTag::RequestGameplayTag(FName("GameplayCue.HitStun"));
 	static FGameplayTag GAHitStunTag;		// FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	static FGameplayTag GrabbedTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
+	static FGameplayTag TimestopTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 
 	UFUNCTION(BlueprintCallable)
 	void SetUsername(FString NewUsername) { Username = NewUsername; Save();}
