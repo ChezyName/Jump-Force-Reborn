@@ -3,6 +3,7 @@
 
 #include "JFGameState.h"
 
+#include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -14,12 +15,30 @@ void AJFGameState::RepTimeStop_Implementation(bool isTimeStopped, AJFCharacter* 
 
 void AJFGameState::StopTime(AJFCharacter* _TimeStopper)
 {
-	ServerDoTimestop(_TimeStopper, true);
+	if(bIsTimeStopped) return;
+
+	UKismetSystemLibrary::PrintString(GetWorld(),"Time Has Been Stopped", true,
+true, FLinearColor::Yellow, 60, FName("TimeStopServer"));
+
+	if(!HasAuthority()) return;
+	
+	bIsTimeStopped = true;
+	TimeStopper = _TimeStopper;
+	RepTimeStop(bIsTimeStopped, TimeStopper);
 }
 
 void AJFGameState::ResumeTime()
 {
-	ServerDoTimestop(nullptr, false);
+	if(!bIsTimeStopped) return;
+
+	UKismetSystemLibrary::PrintString(GetWorld(),"Time Has Been Resumed", true,
+true, FLinearColor::Yellow, 60, FName("TimeStopServer"));
+
+	if(!HasAuthority()) return;
+
+	bIsTimeStopped = false;
+	RepTimeStop(bIsTimeStopped, TimeStopper);
+	TimeStopper = nullptr;
 }
 
 void AJFGameState::ServerDoTimestop_Implementation(AJFCharacter* _TimeStopper, bool Timestopping)

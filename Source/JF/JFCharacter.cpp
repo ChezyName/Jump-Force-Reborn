@@ -396,6 +396,8 @@ void AJFCharacter::Move(const FInputActionValue& Value)
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::CantMoveTag)
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag)
 		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryStunTag)
+		&& !AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::TimestopTag)
 	)
 	{
 		// find out which way is forward
@@ -527,7 +529,7 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 {
 	UKismetSystemLibrary::PrintString(GetWorld(),
 	"User [" + Char->GetName() + "] " + (isTimeStopped ? "Has Time Stopped" : "Has Time Resumed"), true,
-	true, FLinearColor::Yellow, 2, FName("TargetLock"));
+	true, FLinearColor::Yellow, 60, FName("TimeStopClient"));
 	TimeStopEffects(isTimeStopped);
 	
 	if(isTimeStopped && Char != this)
