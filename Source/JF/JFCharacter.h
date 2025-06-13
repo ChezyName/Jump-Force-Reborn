@@ -27,6 +27,7 @@ struct FInputActionValue;
 constexpr float MAX_METER = 600.f;
 constexpr float METER_PER_SECOND = 100.f/1.f;
 constexpr float METER_PER_HIT = 0.15f;
+constexpr float TS_METER_PER_HIT = 0.05f;
 
 //Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
@@ -34,14 +35,15 @@ constexpr float DASH_CHARGE_PER_SECOND = 100.f/3.f;
 
 //Camera
 constexpr float CAMERA_LERP_SPEED = 2.5f;
+constexpr float PLAYER_LERP_SPEED = 5.f;
 
 constexpr float LOCK_ON_CAMERA_DIST = 300.f;
 constexpr float DEFAULT_CAMERA_DIST = 500.f;
 
 constexpr float CAMERA_LERP_MIN_DIST = 100.f;
 constexpr float CAMERA_LERP_MAX_DIST = 800.f;
-static const FVector LOCK_ON_MIN_CAMERA_SOCKET_OFFSET = FVector(-50, 300, 100);
-static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 100, 50);
+static const FVector LOCK_ON_MIN_CAMERA_SOCKET_OFFSET = FVector(-75, 75, 125);
+static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 75, 50);
 static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
 constexpr float PARRY_PRE_LAG = 0.05f;
@@ -104,13 +106,13 @@ private:
 	float TSHitTime = 0.f;
 	void TakeTSHit();
 	void TickTSHits(float DeltaSeconds);
-	void DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage);
+	void DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage, bool duringTS = false);
 public:
 	UPROPERTY(BlueprintReadOnly)
 	AJFGameState* GS;
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false);
+	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false, bool DuringTimestop = false);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void TakeDamageFXs(float Damage);
@@ -367,7 +369,7 @@ public:
 	//Default Attributes
 	//Players Max Health
 	UPROPERTY(EditDefaultsOnly, Category="Character|Defaults")
-	float MaxHealth = 1500;
+	float MaxHealth = 5000;
 	
 	//Players Movement Speed
 	UPROPERTY(EditDefaultsOnly, Category="Character|Defaults", meta=(Units="cm/s"))

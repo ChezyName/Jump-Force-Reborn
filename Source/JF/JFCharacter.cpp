@@ -637,7 +637,8 @@ void AJFCharacter::Tick(float DeltaSeconds)
 		PlayerRotation.Pitch = GetActorRotation().Pitch;
 		PlayerRotation.Roll = GetActorRotation().Roll;
 
-		SetActorRotation(PlayerRotation);
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(),
+			 PlayerRotation, DeltaSeconds, PLAYER_LERP_SPEED));
 	}
 
 	//Lock on Camera
@@ -666,6 +667,29 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				FinalLockedOnSocketOffset =
 					FMath::Lerp(LOCK_ON_MIN_CAMERA_SOCKET_OFFSET, LOCK_ON_MAX_CAMERA_SOCKET_OFFSET, Alpha);
 				
+				//Y = Left or Right Offset (Shoulder Camera)
+				FHitResult Hit;
+				UKismetSystemLibrary::LineTraceSingle(
+					GetWorld(),
+					GetActorLocation(),
+					GetActorLocation() +
+						(GetActorRightVector() * (FinalLockedOnSocketOffset.Y * 1.5f)),
+					TraceTypeQuery_MAX,
+					false,
+					{this},
+					EDrawDebugTrace::ForOneFrame,
+					Hit,
+					true,
+					FLinearColor::Red,
+					FLinearColor::Green,
+					1.f
+				);
+
+				//Flip Shoulder if Blocking Hit
+				if(Hit.bBlockingHit)
+				{
+					FinalLockedOnSocketOffset.Y *= -1;
+				}
 				
 				UKismetSystemLibrary::PrintString(GetWorld(),
 					"Target Distance: " + FString::SanitizeFloat(TargetDist), true,
@@ -679,15 +703,36 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				CAMERA_LERP_SPEED
 			);
 
+			if(LockOnCharacter)
+			{
+				FRotator BoomLookAtRot = UKismetMathLibrary::FindLookAtRotation(
+				GetCameraBoom()->GetComponentLocation(),
+				LockOnCharacter->GetActorLocation());
+
+				GetCameraBoom()->SetWorldRotation(FMath::RInterpTo(
+					GetCameraBoom()->GetComponentRotation(),
+					BoomLookAtRot,
+					DeltaSeconds,
+					CAMERA_LERP_SPEED
+				));
+			}
+
 			//Camera Look at Target
+			/*
 			if(GetFollowCamera() && LockOnCharacter)
 			{
-				FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(\
+				FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(
 					GetFollowCamera()->GetComponentLocation(),
 					LockOnCharacter->GetActorLocation());
 
-				GetFollowCamera()->SetWorldRotation(LookAtRot);
+				GetFollowCamera()->SetWorldRotation(FMath::RInterpTo(
+					GetFollowCamera()->GetComponentRotation(),
+					LookAtRot,
+					DeltaSeconds,
+					CAMERA_LERP_SPEED
+				));
 			}
+			*/
 		}
 	}
 
@@ -943,14 +988,23 @@ void AJFCharacter::TickTSHits(float DeltaSeconds)
 
 void AJFCharacter::TakeTSHit()
 {
+	//TIMESTOP WILL HIT CHARACTER ALL AT ONCE (TEMP)
 	if((GS && GS->IsTimeStopped()) || TSHitTime > 0) return;
 	FTimeStopHit Hit = TimeStopHits.Pop();
-	TakeDamage(Hit.Damage, Hit.Char);
-	TSHitTime = TIME_STOP_HIT_DELAY;
+	
+	float Damage = 0.f;
+	for(int i = 0; i < TimeStopHits.Num(); i++)
+	{
+		Damage += TimeStopHits[i].Damage;
+	}
+	TimeStopHits.Empty();
+	
+	TakeDamage(Damage, Hit.Char, false, true);
+	TSHitTime = 0.f;
 }
 
 //Damage Function
-void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun)
+void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun, bool DuringTimestop)
 {
 	if(DamageDealer == nullptr || Damage == 0) return;
 
@@ -1000,7 +1054,7 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	TakeDamageFXs(Damage);
 
 	//Give other player some meter
-	DamageDealerGiveMeter(DamageDealer, Damage);
+	DamageDealerGiveMeter(DamageDealer, Damage, DuringTimestop);
 	
 	if(!IgnoreHitStun)
 	{
@@ -1019,13 +1073,13 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	if(cHealth <= 0) OnDeath(DamageDealer);
 }
 
-void AJFCharacter::DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage)
+void AJFCharacter::DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage, bool duringTS)
 {
 	if(!HasAuthority() || Dealer == nullptr || Damage <= 0) return;
 
 	//Take Meter
 	float Meter = Dealer->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());
-	Meter += Damage * METER_PER_HIT;
+	Meter += duringTS ? (Damage * TS_METER_PER_HIT) : (Damage * METER_PER_HIT);
 	Meter = FMath::Clamp(Meter, 0, MAX_METER);
 
 	Dealer->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), Meter);
@@ -1084,6 +1138,7 @@ void AJFCharacter::OnLockOnPressed()
 	{
 		isLockedOn = false;
 		LockOnCharacter = nullptr;
+		PostLockedOnChanged();
 		setLockedOnServer();
 		GetController()->SetControlRotation(GetCameraBoom()->GetTargetRotation());
 		GetCameraBoom()->bUsePawnControlRotation = true;
@@ -1130,7 +1185,8 @@ void AJFCharacter::OnLockOnPressed()
 		GetController()->SetControlRotation(FRotator::ZeroRotator);
 		LockOnCharacter = static_cast<AJFCharacter*>(FinalTarget);
 		isLockedOn = true;
-		setLockedOnServer(true, LockOnCharacter);
+		PostLockedOnChanged();
+		setLockedOnServer(isLockedOn, LockOnCharacter);
 		GetCameraBoom()->bUsePawnControlRotation = false;
 		LockedOnEvent.Broadcast(LockOnCharacter);
 
