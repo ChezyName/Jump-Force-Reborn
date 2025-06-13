@@ -104,6 +104,71 @@ void UJFASComponent::ClearAbilityBindings(UInputAction* InputAction)
 	RemoveEntry(InputAction);
 }
 
+void UJFASComponent::AbilityLocalInputPressed(int32 InputID)
+{
+	// Consume the input if this InputID is overloaded with GenericConfirm/Cancel and the GenericConfim/Cancel callback is bound
+	if (IsGenericConfirmInputBound(InputID))
+	{
+		LocalInputConfirm();
+		return;
+	}
+
+	if (IsGenericCancelInputBound(InputID))
+	{
+		LocalInputCancel();
+		return;
+	}
+
+	// ---------------------------------------------------------
+
+	ABILITYLIST_SCOPE_LOCK();
+	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+		if (Spec.InputID == InputID)
+		{
+			if (Spec.Ability)
+			{
+				Spec.InputPressed = true;
+				if (Spec.IsActive())
+				{
+					if (Spec.Ability->bReplicateInputDirectly && IsOwnerActorAuthoritative() == false)
+					{
+						ServerSetInputPressed(Spec.Handle);
+					}
+
+					AbilitySpecInputPressed(Spec);
+
+					PRAGMA_DISABLE_DEPRECATION_WARNINGS
+										// Fixing this up to use the instance activation, but this function should be deprecated as it cannot work with InstancedPerExecution
+										UE_CLOG(Spec.Ability->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerExecution, LogAbilitySystem, Warning, TEXT("%hs: %s is InstancedPerExecution. This is unreliable for Input as you may only interact with the latest spawned Instance"), __func__, *GetNameSafe(Spec.Ability));
+					TArray<UGameplayAbility*> Instances = Spec.GetAbilityInstances();
+					const FGameplayAbilityActivationInfo& ActivationInfo = Instances.IsEmpty() ? Spec.ActivationInfo : Instances.Last()->GetCurrentActivationInfoRef();
+					PRAGMA_ENABLE_DEPRECATION_WARNINGS
+										// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+										InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, ActivationInfo.GetActivationPredictionKey());					
+				}
+				else
+				{
+					// Ability is not active, so try to activate it
+					bool isActive = TryActivateAbility(Spec.Handle);
+					if(!isActive)
+					{
+						//Queue Ability
+						NextAbility = {
+							Spec.Handle,
+							true,
+							ABILITY_QUEUE_LIFETIME_DEFAULT,
+							Ability
+						};
+
+						UKismetSystemLibrary::PrintString(GetWorld(), "Ability Queued");
+					}
+				}
+			}
+		}
+	}
+}
+
 void UJFASComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec)
 {
 	Super::OnGiveAbility(AbilitySpec);

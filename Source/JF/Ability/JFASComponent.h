@@ -79,6 +79,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Enhanced Input Abilities")
 	void ClearAbilityBindings(UInputAction* InputAction);
 
+	virtual void AbilityLocalInputPressed(int32 InputID) override;
+
 	UFUNCTION()
 	void SetInputComponent(UEnhancedInputComponent* _InputComponent) {InputComponent = _InputComponent;}
 
