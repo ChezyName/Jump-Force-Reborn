@@ -34,8 +34,8 @@ constexpr float MAX_DASH_CHARGE = 400.f;
 constexpr float DASH_CHARGE_PER_SECOND = 100.f/5.f;
 
 //Camera
-constexpr float CAMERA_LERP_SPEED = 2.5f;
-constexpr float PLAYER_LERP_SPEED = 5.f;
+constexpr float CAMERA_LERP_SPEED = 25.f;
+constexpr float PLAYER_LERP_SPEED = 15.f;
 
 constexpr float LOCK_ON_CAMERA_DIST = 300.f;
 constexpr float DEFAULT_CAMERA_DIST = 500.f;
@@ -51,11 +51,11 @@ static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
 //Parry
 constexpr float PARRY_PRE_LAG = 0.05f;
-constexpr float PARRY_WINDOW = 0.15f;
+constexpr float PARRY_WINDOW = 0.35f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
 //Stuns
-constexpr float PARRY_STUN_TIME = 1.f;
+constexpr float PARRY_STUN_TIME = 1.5f;
 constexpr float HIT_STUN_TIME = 0.25f;
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
@@ -547,6 +547,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void CallParryEvent();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void ParryWindowEvent();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void ParryEndEvent();

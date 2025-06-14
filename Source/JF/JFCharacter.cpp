@@ -861,6 +861,9 @@ int AJFCharacter::SyncAttacks(bool isLight)
 	
 	const float div = (!isLight ? LightAttacks.Num() : HeavyAttacks.Num());
 	const float prog = (base/div);
+
+	//Reset if Index is large than the attack size
+	if(div <= base) return 0;
 	
 	const float opp_base = GetNumericAttribute(isLight ?
     	UJFAttributeSet::GetLightAttackComboAttribute() :
@@ -1289,6 +1292,7 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::ParryTag);
 		AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::ParryTag);
 		bStartParryWindow = true;
+		ParryWindowEvent();
 	}
 
 	if(ParryTime <= PARRY_POST_LAG && !bEndParryWindow)
@@ -1298,6 +1302,7 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::ParryTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::ParryTag);
 		bEndParryWindow = true;
+		ParryEndEvent();
 	}
 
 	if(ParryTime <= 0)
@@ -1308,7 +1313,6 @@ void AJFCharacter::TickParry(float DeltaSeconds)
 		AbilitySystemComponent->RemoveReplicatedLooseGameplayTag(UJFGameInstance::CantMoveTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
 		AbilitySystemComponent->RemoveLooseGameplayTag(UJFGameInstance::CantMoveTag);
-		ParryEndEvent();
 		bIsParrying = false;
 	}
 }
@@ -1383,6 +1387,12 @@ void AJFCharacter::TickHitStun(float DeltaSeconds)
 void AJFCharacter::CallParryEvent_Implementation()
 {
 	ParryAnimationEvent.Broadcast();
+	LParryEyes->SetVisibility(false);
+	RParryEyes->SetVisibility(false);
+}
+
+void AJFCharacter::ParryWindowEvent_Implementation()
+{
 	LParryEyes->SetVisibility(true);
 	RParryEyes->SetVisibility(true);
 }
