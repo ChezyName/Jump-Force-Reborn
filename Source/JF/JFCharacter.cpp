@@ -544,6 +544,9 @@ void AJFCharacter::TimeStopEvent(bool isTimeStopped, AJFCharacter* Char)
 
 		//Stop Animation Movement
 		GetMesh()->bPauseAnims = true;
+
+		//Cancel All Abilities
+		AbilitySystemComponent->CancelAllAbilities();
 	}
 
 	if(!isTimeStopped)
@@ -669,15 +672,30 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				
 				//Y = Left or Right Offset (Shoulder Camera)
 				FHitResult Hit;
-				UKismetSystemLibrary::LineTraceSingle(
+				const bool bFlipShoulder = UKismetSystemLibrary::LineTraceSingle(
 					GetWorld(),
 					GetActorLocation(),
 					GetActorLocation() +
-						(GetActorRightVector() * (FinalLockedOnSocketOffset.Y * 1.5f)),
+						(GetActorRightVector() * (FinalLockedOnSocketOffset.Y * 2.f)),
 					TraceTypeQuery_MAX,
 					false,
 					{this},
-					EDrawDebugTrace::ForOneFrame,
+					EDrawDebugTrace::None,
+					Hit,
+					true,
+					FLinearColor::Red,
+					FLinearColor::Green,
+					1.f
+				);
+				const bool bOverheadCamera = UKismetSystemLibrary::LineTraceSingle(
+					GetWorld(),
+					GetActorLocation(),
+					GetActorLocation() +
+						(-GetActorForwardVector() * (300.f)),
+					TraceTypeQuery_MAX,
+					false,
+					{this},
+					EDrawDebugTrace::None,
 					Hit,
 					true,
 					FLinearColor::Red,
@@ -686,9 +704,14 @@ void AJFCharacter::Tick(float DeltaSeconds)
 				);
 
 				//Flip Shoulder if Blocking Hit
-				if(Hit.bBlockingHit)
+				if(bFlipShoulder)
 				{
 					FinalLockedOnSocketOffset.Y *= -1;
+				}
+
+				if(bOverheadCamera)
+				{
+					FinalLockedOnSocketOffset.Z += LOCK_ON_CAMERA_HEIGHT_OBSCURED;
 				}
 				
 				UKismetSystemLibrary::PrintString(GetWorld(),
@@ -777,10 +800,13 @@ void AJFCharacter::Tick(float DeltaSeconds)
 		}
 
 		//Tick Dash Charge
-		float cDashCharge = GetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute());
-		cDashCharge += DeltaSeconds * DASH_CHARGE_PER_SECOND;
-		cDashCharge = FMath::Clamp(cDashCharge, 0.f, MAX_DASH_CHARGE);
-		SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), cDashCharge);
+		if(!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::TimestopTag))
+		{
+			float cDashCharge = GetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute());
+			cDashCharge += DeltaSeconds * DASH_CHARGE_PER_SECOND;
+			cDashCharge = FMath::Clamp(cDashCharge, 0.f, MAX_DASH_CHARGE);
+			SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), cDashCharge);
+		}
 	}
 }
 
@@ -1003,6 +1029,16 @@ void AJFCharacter::TakeTSHit()
 	TSHitTime = 0.f;
 }
 
+void AJFCharacter::PlayMontageReplicated(UAnimMontage* Montage)
+{
+	if(!HasAuthority()) return;
+	PlayMontageMulticast(Montage);
+}
+void AJFCharacter::PlayMontageMulticast_Implementation(UAnimMontage* Montage)
+{
+	PlayAnimMontage(Montage);
+}
+
 //Damage Function
 void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun, bool DuringTimestop)
 {
@@ -1055,6 +1091,12 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 
 	//Give other player some meter
 	DamageDealerGiveMeter(DamageDealer, Damage, DuringTimestop);
+
+	//Stop Ability if no HyperArmor
+	if(!AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::HyperArmorTag))
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+	}
 	
 	if(!IgnoreHitStun)
 	{

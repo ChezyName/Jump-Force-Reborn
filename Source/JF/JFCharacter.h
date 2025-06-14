@@ -31,7 +31,7 @@ constexpr float TS_METER_PER_HIT = 0.05f;
 
 //Dash
 constexpr float MAX_DASH_CHARGE = 400.f;
-constexpr float DASH_CHARGE_PER_SECOND = 100.f/3.f;
+constexpr float DASH_CHARGE_PER_SECOND = 100.f/5.f;
 
 //Camera
 constexpr float CAMERA_LERP_SPEED = 2.5f;
@@ -42,18 +42,24 @@ constexpr float DEFAULT_CAMERA_DIST = 500.f;
 
 constexpr float CAMERA_LERP_MIN_DIST = 100.f;
 constexpr float CAMERA_LERP_MAX_DIST = 800.f;
+
+constexpr float LOCK_ON_CAMERA_HEIGHT_OBSCURED = 100.f;
 static const FVector LOCK_ON_MIN_CAMERA_SOCKET_OFFSET = FVector(-75, 75, 125);
 static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 75, 50);
+
 static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
+//Parry
 constexpr float PARRY_PRE_LAG = 0.05f;
 constexpr float PARRY_WINDOW = 0.15f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
+//Stuns
 constexpr float PARRY_STUN_TIME = 1.f;
 constexpr float HIT_STUN_TIME = 0.25f;
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
+//Time Stop Attacks (Post Time Stop)
 constexpr float TIME_STOP_HIT_DELAY = 0.01; //How Long Between Attacks in TS Can We Do
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FParryAnimation);
@@ -107,9 +113,14 @@ private:
 	void TakeTSHit();
 	void TickTSHits(float DeltaSeconds);
 	void DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage, bool duringTS = false);
+	UFUNCTION(NetMulticast, Reliable)
+	void PlayMontageMulticast(UAnimMontage* Montage);
 public:
 	UPROPERTY(BlueprintReadOnly)
 	AJFGameState* GS;
+
+	UFUNCTION(BlueprintCallable)
+	void PlayMontageReplicated(UAnimMontage* Montage);
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false, bool DuringTimestop = false);
