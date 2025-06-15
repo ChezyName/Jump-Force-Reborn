@@ -209,11 +209,11 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 
 				if(AJFCharacter* SelfChar = Cast<AJFCharacter>(GetAvatarActorFromActorInfo()))
 				{
-					Char->TakeDamage(Damage, SelfChar);
+					Char->TakeDamage(Damage, SelfChar, false, false, Hitbox->Owner);
 					if(bPlayHitSound) SelfChar->PlaySoundByTypeAtLocation(AttackSound, Hitbox->GetWorldTransform().GetLocation());
 				}
 				
-				OnHitboxHit(Hitbox);
+				OnHitboxHit(Hitbox, Actor);
 				ActorsHit.Add(Actor);
 			}
 		}
@@ -222,7 +222,8 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 
 UHitbox* UGameplayAbility_JFAttack::CreateHitbox(TEnumAsByte<EHitboxType> Type,
                                                  FVector Position, FRotator Rotation, FVector Size,
-                                                 UPrimitiveComponent* AttachTo, FName AttachToBoneName, 
+                                                 AActor* Owner,
+                                                 UPrimitiveComponent* AttachTo, FName AttachToBoneName,
                                                  float Lifetime, bool Debug)
 {
 	UHitbox* BuildingHitbox = NewObject<UHitbox>(this);
@@ -238,6 +239,8 @@ UHitbox* UGameplayAbility_JFAttack::CreateHitbox(TEnumAsByte<EHitboxType> Type,
 	BuildingHitbox->Location = Position;
 	BuildingHitbox->Rotation = Rotation;
 	BuildingHitbox->Size = Size;
+	//Will Default to Ability Owner Upon Hit
+	BuildingHitbox->Owner = Owner;
 
 	if(USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(AttachTo))
 	{

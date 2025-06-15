@@ -58,6 +58,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bDebug = false;
 
+	UPROPERTY()
+	AActor* HitboxOwner = nullptr;
+
 	UFUNCTION(BlueprintPure)
 	FTransform GetWorldTransform()
 	{
@@ -146,7 +149,7 @@ private:
 public:
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = Hitbox, DisplayName = "Hitbox Hit", meta=(ScriptName = "HitboxHit"))
-	void OnHitboxHit(UHitbox* Hitbox);
+	void OnHitboxHit(UHitbox* Hitbox, AActor* TargetHit);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = Tick, DisplayName = "On Tick", meta=(ScriptName = "OnTick"))
 	void OnTickEvent(float DeltaSeconds);
@@ -182,7 +185,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	UHitbox* CreateHitbox(TEnumAsByte<EHitboxType> Type = EHitboxType::Box,
 		FVector Position = FVector::ZeroVector, FRotator Rotation = FRotator::ZeroRotator,
-		FVector Size = FVector(100,100,100),
+		FVector Size = FVector(100,100,100), AActor* Owner = nullptr,
 		UPrimitiveComponent* AttachTo = nullptr, FName AttachToBoneName = NAME_None,
 		float Lifetime = -1, bool Debug = false);
 

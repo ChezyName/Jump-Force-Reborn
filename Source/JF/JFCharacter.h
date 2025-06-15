@@ -123,7 +123,7 @@ public:
 	void PlayMontageReplicated(UAnimMontage* Montage);
 	
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false, bool DuringTimestop = false);
+	void TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun = false, bool DuringTimestop = false, AActor* Hitter = nullptr);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void TakeDamageFXs(float Damage);

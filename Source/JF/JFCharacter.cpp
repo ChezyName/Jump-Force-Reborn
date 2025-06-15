@@ -1043,7 +1043,7 @@ void AJFCharacter::PlayMontageMulticast_Implementation(UAnimMontage* Montage)
 }
 
 //Damage Function
-void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun, bool DuringTimestop)
+void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool IgnoreHitStun, bool DuringTimestop, AActor* Hitter)
 {
 	if(DamageDealer == nullptr || Damage == 0) return;
 
@@ -1111,7 +1111,9 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 
 		//Knock Back
 		float LaunchBackVel = FMath::Clamp(Damage * HIT_STUN_LAUNCH_VEL, 0.f, 1000.f);
-		FVector LaunchBack = DamageDealer->GetActorForwardVector() * LaunchBackVel;
+		FVector LaunchBack =
+			(Hitter != nullptr ? Hitter->GetActorForwardVector() : DamageDealer->GetActorForwardVector())
+			* LaunchBackVel;
 		LaunchCharacter(LaunchBack, true, false);
 	}
 
