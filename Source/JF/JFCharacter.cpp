@@ -1260,7 +1260,8 @@ void AJFCharacter::Parry_Implementation()
 {
 	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::DoingSomethingTag) ||
 		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GAHitStunTag) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag)) return;
+		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::GrabbedTag) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::TimestopTag)) return;
 
 	//Cannot Move for First Few Frames of Parry
 	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
