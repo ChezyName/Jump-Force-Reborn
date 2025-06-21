@@ -41,6 +41,14 @@ public:
 
 	virtual void Init() override;
 
+	bool bDebugHitbox;
+
+	UFUNCTION(Exec, Category="Debug")
+	void DebugHitbox()
+	{
+		bDebugHitbox = !bDebugHitbox;
+	}
+
 private:
 	FString SaveSlot = TEXT("UserSave");
 	int32 UserIndex = 0;

@@ -57,6 +57,11 @@ void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle
 	LastTime = GetWorld()->GetTimeSeconds();
 	ResetActorsHit();
 
+	if(GI == nullptr)
+	{
+		GI = Cast<UJFGameInstance>(GetWorld()->GetGameInstance());
+	}
+
 	//Play 'GRUNT' Sound
 	if(bPlayGruntSound)
 	{
@@ -176,7 +181,7 @@ void UGameplayAbility_JFAttack::TickHitbox(UHitbox* Hitbox)
 {
 	if(Hitbox == nullptr) return;
 	//Showcase if Debug
-	if(Hitbox->bDebug) DebugHitbox(Hitbox, Hitbox->bActive ? FColor::Green : FColor::Red);
+	if(GI->bDebugHitbox) DebugHitbox(Hitbox, Hitbox->bActive ? FColor::Green : FColor::Red);
 	
 	//Tick this Hitbox
 	if(Hitbox->bActive)
@@ -224,13 +229,12 @@ UHitbox* UGameplayAbility_JFAttack::CreateHitbox(TEnumAsByte<EHitboxType> Type,
                                                  FVector Position, FRotator Rotation, FVector Size,
                                                  AActor* Owner,
                                                  UPrimitiveComponent* AttachTo, FName AttachToBoneName,
-                                                 float Lifetime, bool Debug)
+                                                 float Lifetime)
 {
 	UHitbox* BuildingHitbox = NewObject<UHitbox>(this);
 	BuildingHitbox->HitboxID = HitboxIDGenerator();
 	BuildingHitbox->Lifetime = Lifetime;
 	BuildingHitbox->HitboxType = Type;
-	BuildingHitbox->bDebug = Debug;
 	
 	BuildingHitbox->Owner = GetAvatarActorFromActorInfo();
 	BuildingHitbox->AttachedTo = AttachTo;

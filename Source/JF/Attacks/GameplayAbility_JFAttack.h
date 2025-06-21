@@ -6,6 +6,7 @@
 #include "HitboxTask.h"
 #include "Abilities/GameplayAbility.h"
 #include "JF/JFCharacter.h"
+#include "JF/Game/JFGameInstance.h"
 #include "GameplayAbility_JFAttack.generated.h"
 
 UENUM(BlueprintType)
@@ -54,9 +55,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bActive = false;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool bDebug = false;
 
 	UPROPERTY()
 	AActor* HitboxOwner = nullptr;
@@ -131,6 +129,8 @@ protected:
 	virtual void onTick();
 
 	bool callTickEvent = true;
+
+	UJFGameInstance* GI;
 private:
 	UPROPERTY()
 	UHitboxTask* HitboxTask;
@@ -187,7 +187,7 @@ protected:
 		FVector Position = FVector::ZeroVector, FRotator Rotation = FRotator::ZeroRotator,
 		FVector Size = FVector(100,100,100), AActor* Owner = nullptr,
 		UPrimitiveComponent* AttachTo = nullptr, FName AttachToBoneName = NAME_None,
-		float Lifetime = -1, bool Debug = false);
+		float Lifetime = -1);
 
 	UFUNCTION(BlueprintCallable)
 	void EnableHitbox(UHitbox* Hitbox) { if(Hitbox != nullptr) Hitbox->bActive = true; }
