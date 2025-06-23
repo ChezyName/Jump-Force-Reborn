@@ -861,14 +861,15 @@ int AJFCharacter::SyncAttacks(bool isLight)
 	
 	const float div = (!isLight ? LightAttacks.Num() : HeavyAttacks.Num());
 	const float prog = (base/div);
-
-	//Reset if Index is large than the attack size
-	if(div <= base) return 0;
 	
 	const float opp_base = GetNumericAttribute(isLight ?
     	UJFAttributeSet::GetLightAttackComboAttribute() :
     	UJFAttributeSet::GetHeavyAttackComboAttribute());
-	const float opp_div = (!isLight ? LightAttacks.Num() : HeavyAttacks.Num());
+	const float opp_div = (isLight ? LightAttacks.Num() : HeavyAttacks.Num());
+	
+	//Return Max Attack (Could Be Switching from Last Attack)
+	if(div <= base) return (opp_div - 1);
+	
 
 	//Calculate New Attack Index
 	const float BaseIndex = prog * opp_div;
