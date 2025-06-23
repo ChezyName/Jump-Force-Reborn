@@ -869,7 +869,7 @@ int AJFCharacter::SyncAttacks(bool isLight)
 	
 	//Return Max Attack (Could Be Switching from Last Attack)
 	if(div <= base) return (opp_div - 1);
-	
+	if(opp_div <= opp_base) return (opp_div - 1);
 
 	//Calculate New Attack Index
 	const float BaseIndex = prog * opp_div;

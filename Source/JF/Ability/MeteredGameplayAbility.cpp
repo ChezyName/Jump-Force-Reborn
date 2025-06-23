@@ -101,10 +101,10 @@ void UMeteredGameplayAbility::onTickSelf()
 	DeltaTime = CurrentTime - LastTime;
 	LastTime = CurrentTime;
 
-	UKismetSystemLibrary::PrintString(GetWorld(), "Tick", true, true, FLinearColor::Yellow,
-		2, FName("TICK CLOCK"));
+	//UKismetSystemLibrary::PrintString(GetWorld(), "Tick", true, true, FLinearColor::Yellow,
+	//	2, FName("TICK CLOCK"));
 
-	if(Character)
+	if(Character && TakesMeterPerSecond)
 	{
 		//Take Meter
 		float Meter = Character->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());

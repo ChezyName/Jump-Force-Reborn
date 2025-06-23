@@ -62,6 +62,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
 	bool TakesCostOnUse = true;
 
+	//Will Auto Take The Cost Upon Use
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(ClampMin=0, ClampMax=6), Category="Ability")
+	bool TakesMeterPerSecond = true;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(Units="m/s", ClampMin=0, ClampMax=600), Category="Ability")
 	float MeterPerSecond = 0.f;
 
