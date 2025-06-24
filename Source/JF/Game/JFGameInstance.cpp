@@ -14,6 +14,7 @@ FGameplayTag UJFGameInstance::GAHitStunTag;
 FGameplayTag UJFGameInstance::GrabbedTag;
 FGameplayTag UJFGameInstance::TimestopTag;
 FGameplayTag UJFGameInstance::HyperArmorTag;
+FGameplayTag UJFGameInstance::ParryArmorTag;
 
 void UJFGameInstance::Save()
 {
@@ -51,7 +52,8 @@ void UJFGameInstance::Init()
 	GAHitStunTag = FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	GrabbedTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 	TimestopTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped"));
-	HyperArmorTag =FGameplayTag::RequestGameplayTag(FName("Character.Status.HyperArmor"));
+	HyperArmorTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.HyperArmor"));
+	ParryArmorTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.ParryArmor"));
 	
 	Load();
 	

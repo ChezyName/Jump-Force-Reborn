@@ -55,8 +55,14 @@ constexpr float PARRY_WINDOW = 0.35f;
 constexpr float PARRY_POST_LAG = 0.1f;
 
 //Stuns
-constexpr float PARRY_STUN_TIME = 1.75f;
-constexpr float HIT_STUN_TIME = 0.6f;
+constexpr float PARRY_STUN_TIME_PER_HIT = 0.008f;
+constexpr float PARRY_STUN_TIME_MIN = 0.8f;
+constexpr float PARRY_STUN_TIME_MAX = 4.f;
+
+constexpr float HIT_STUN_TIME_PER_HIT = 0.002f;
+constexpr float HIT_STUN_TIME_MIN = 0.2f;
+constexpr float HIT_STUN_TIME_MAX = 2.5f;
+
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage
 
 //Time Stop Attacks (Post Time Stop)

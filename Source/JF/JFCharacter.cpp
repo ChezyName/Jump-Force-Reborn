@@ -1105,7 +1105,7 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 	if(!IgnoreHitStun)
 	{
 		//Hit Stun
-		HitStunTime = HIT_STUN_TIME;
+		HitStunTime = FMath::Clamp(HIT_STUN_TIME_PER_HIT * Damage, HIT_STUN_TIME_MIN, HIT_STUN_TIME_MAX);
 		AbilitySystemComponent->AddGameplayCue(UJFGameInstance::HitStunTag);
 		AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::GAHitStunTag);
 		AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::GAHitStunTag);
@@ -1325,6 +1325,9 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 {
 	//Only Stunned Once
 	if(isStunned) return;
+
+	//Cannot if has ParryArmor
+	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryArmorTag)) return;
 	
 	GEngine->AddOnScreenDebugMessage(-1,25,FColor::Red,
 		GetName() + " Has Been Stunned due to Parry.");
@@ -1338,7 +1341,7 @@ void AJFCharacter::onParried_Implementation(float Damage, AJFCharacter* Characte
 	
 	AbilitySystemComponent->AddGameplayCue(UJFGameInstance::ParryStunTag);
 
-	StunTime = PARRY_STUN_TIME;
+	StunTime = FMath::Clamp(PARRY_STUN_TIME_PER_HIT * Damage, PARRY_STUN_TIME_MIN, PARRY_STUN_TIME_MAX);;
 	isStunned = true;
 
 	//Effects
