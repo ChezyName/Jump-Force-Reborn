@@ -1123,7 +1123,8 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 
 void AJFCharacter::DamageDealerGiveMeter(AJFCharacter* Dealer, float Damage, bool duringTS)
 {
-	if(!HasAuthority() || Dealer == nullptr || Damage <= 0) return;
+	if(!HasAuthority() || Dealer == nullptr || Damage <= 0 ||
+		Dealer->AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::NoMeterTag)) return;
 
 	//Take Meter
 	float Meter = Dealer->GetNumericAttribute(UJFAttributeSet::GetMeterAttribute());

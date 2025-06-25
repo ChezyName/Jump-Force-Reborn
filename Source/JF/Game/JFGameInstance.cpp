@@ -15,6 +15,7 @@ FGameplayTag UJFGameInstance::GrabbedTag;
 FGameplayTag UJFGameInstance::TimestopTag;
 FGameplayTag UJFGameInstance::HyperArmorTag;
 FGameplayTag UJFGameInstance::ParryArmorTag;
+FGameplayTag UJFGameInstance::NoMeterTag;
 
 void UJFGameInstance::Save()
 {
@@ -54,6 +55,7 @@ void UJFGameInstance::Init()
 	TimestopTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped"));
 	HyperArmorTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.HyperArmor"));
 	ParryArmorTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.ParryArmor"));
+	NoMeterTag = FGameplayTag::RequestGameplayTag(FName("Character.Status.NoMeter"));
 	
 	Load();
 	

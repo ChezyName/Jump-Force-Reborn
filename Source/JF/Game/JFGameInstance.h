@@ -27,8 +27,9 @@ public:
 	static FGameplayTag GAHitStunTag;		// FGameplayTag::RequestGameplayTag(FName("Character.HitStun"));
 	static FGameplayTag GrabbedTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
 	static FGameplayTag TimestopTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped"));
-	static FGameplayTag HyperArmorTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
-	static FGameplayTag ParryArmorTag;		// FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed"));
+	static FGameplayTag HyperArmorTag;
+	static FGameplayTag ParryArmorTag;
+	static FGameplayTag NoMeterTag; //Cannot Charge Any Meter From Attacks
 
 	UFUNCTION(BlueprintCallable)
 	void SetUsername(FString NewUsername) { Username = NewUsername; Save();}

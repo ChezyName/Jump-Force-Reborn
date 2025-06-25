@@ -16,6 +16,7 @@ class JF_API AJFGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(BlueprintAssignable)
 	FTimeStopEvent TimeStopEvent;
 
 	UFUNCTION(BlueprintCallable)
