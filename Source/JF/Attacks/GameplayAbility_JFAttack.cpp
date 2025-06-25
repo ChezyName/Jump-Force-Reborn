@@ -121,8 +121,16 @@ void UGameplayAbility_JFAttack::DebugHitbox(UHitbox* Hitbox, FColor Color, bool 
 	}
 
 	//Display as Box
-	DrawDebugBox(GetWorld(), Position, Size, Rotation.Quaternion(),
+	if(Hitbox->HitboxType == Box)
+	{
+		DrawDebugBox(GetWorld(), Position, Size, Rotation.Quaternion(),
 		Color, Display, (1.f/60.f), 0, 2.5f);
+	}
+	else
+	{
+		DrawDebugCapsule(GetWorld(), Position, Size.Y, Size.X,  Rotation.Quaternion(),
+		Color, Display, (1.f/60.f), 0, 2.5f);
+	}
 }
 
 void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*>& Actors)
@@ -161,6 +169,12 @@ void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*
 	{
 		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
 			ECC_Pawn, FCollisionShape::MakeBox(Size),
+			QueryParams);
+	}
+	else if(Hitbox->HitboxType == Capsule)
+	{
+		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
+	ECC_Pawn, FCollisionShape::MakeCapsule(Size.X, Size.Y),
 			QueryParams);
 	}
 

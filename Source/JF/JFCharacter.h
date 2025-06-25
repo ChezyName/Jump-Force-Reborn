@@ -145,6 +145,8 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void HealPlayer(float HealAmount);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void onVisibilityChanged(bool isVisible);
 protected:
 	UFUNCTION(Blueprintable)
 	void OnDeath(AJFCharacter* Killer);
@@ -153,6 +155,7 @@ protected:
 	void onMeshVisibilityChanged()
 	{
 		if(GetMesh()) GetMesh()->SetVisibility(bMeshVisibility);
+		onVisibilityChanged(bMeshVisibility);
 	}
 
 	UPROPERTY(ReplicatedUsing=onMeshVisibilityChanged)
