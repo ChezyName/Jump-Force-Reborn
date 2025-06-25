@@ -1070,7 +1070,7 @@ void AJFCharacter::TakeDamage(float Damage, AJFCharacter* DamageDealer, bool Ign
 		*GetName(), Damage);
 
 	//Check for Parry
-	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryTag))
+	if(AbilitySystemComponent->HasMatchingGameplayTag(UJFGameInstance::ParryTag) && !DuringTimestop)
 	{
 		//Parry Attack & End Parry
 		DamageDealer->onParried(Damage, this);
