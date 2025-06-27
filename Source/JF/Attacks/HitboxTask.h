@@ -29,8 +29,11 @@ public:
 	virtual void Activate() override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
+protected:
+	FDelegateHandle TickDelegate;
+
 private:
 	bool bActive = false;
 	
-	void TickHitboxes();
+	void TickHitboxes(UWorld* World, ELevelTick Tick, float Time);
 };

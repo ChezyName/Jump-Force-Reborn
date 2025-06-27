@@ -59,8 +59,8 @@ constexpr float PARRY_STUN_TIME_PER_HIT = 0.012f;
 constexpr float PARRY_STUN_TIME_MIN = 0.8f;
 constexpr float PARRY_STUN_TIME_MAX = 2.5f;
 
-constexpr float HIT_STUN_TIME_PER_HIT = 0.03f;
-constexpr float HIT_STUN_TIME_MIN = 0.2f;
+constexpr float HIT_STUN_TIME_PER_HIT = 0.015f;
+constexpr float HIT_STUN_TIME_MIN = 0.1f;
 constexpr float HIT_STUN_TIME_MAX = 1.5f;
 
 constexpr float HIT_STUN_LAUNCH_VEL = 25.f; //How Far We go Per 1 Point of Damage

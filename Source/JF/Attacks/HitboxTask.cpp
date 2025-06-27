@@ -16,31 +16,22 @@ UHitboxTask* UHitboxTask::CreateHitboxTicker(UGameplayAbility* OwningParentAbili
 
 void UHitboxTask::Activate()
 {
-	if (ParentAbility && ParentAbility->GetWorld())
-	{
-		ParentAbility->GetWorld()->GetTimerManager().SetTimer(
-			TickTimerHandle,
-			this,
-			&UHitboxTask::TickHitboxes,
-			Interval,
-			true
-		);
-	}
-	
+	TickDelegate = FWorldDelegates::OnWorldTickStart.AddUObject(this, &UHitboxTask::TickHitboxes);
 	Super::Activate();
 }
 
 void UHitboxTask::OnDestroy(bool bInOwnerFinished)
 {
-	if (ParentAbility && ParentAbility->GetWorld())
+	if (TickDelegate.IsValid())
 	{
-		ParentAbility->GetWorld()->GetTimerManager().ClearTimer(TickTimerHandle);
+		FWorldDelegates::OnWorldTickStart.Remove(TickDelegate);
+		TickDelegate.Reset();
 	}
 
 	Super::OnDestroy(bInOwnerFinished);
 }
 
-void UHitboxTask::TickHitboxes()
+void UHitboxTask::TickHitboxes(UWorld* World, ELevelTick Tick, float Time)
 {
 	OnTick.Broadcast();
 }
