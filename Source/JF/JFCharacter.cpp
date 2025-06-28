@@ -601,6 +601,8 @@ void AJFCharacter::BeginPlay()
 
 		//DEBUG ONLY
 		SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), MAX_METER);
+
+		GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	}
 	
 	Super::BeginPlay();
