@@ -20,6 +20,12 @@ private:
 
 	UPROPERTY(Replicated)
 	UHeroData* Hero;
+
+	UPROPERTY(Replicated)
+	int Kills;
+	
+	UPROPERTY(Replicated)
+	int Deaths;
 public:
 	virtual void CopyProperties(APlayerState* PlayerState) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -35,6 +41,25 @@ public:
 	{
 		Hero = NewHero;
 	}
+
+	void setKD(int kills = 0, int deaths = 0)
+	{
+		Kills = kills;
+		Deaths = deaths;
+	}
+	
+	void addKD(int kills = 0, int deaths = 0)
+	{
+		Kills = kills;
+		Deaths = deaths;
+	}
+
+	UFUNCTION(BlueprintPure)
+	int GetKills() { return Kills; }
+	UFUNCTION(BlueprintPure)
+	int GetDeaths() { return Deaths; }
+	UFUNCTION(BlueprintPure)
+	FString GetKD() { return FString::Printf(TEXT("%d/%d"), GetKills(), GetDeaths()); }
 
 	UFUNCTION(BlueprintPure)
 	UHeroData* GetHero(){ return Hero;}

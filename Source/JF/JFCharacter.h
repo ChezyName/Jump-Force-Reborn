@@ -151,6 +151,9 @@ protected:
 	UFUNCTION(Blueprintable)
 	void OnDeath(AJFCharacter* Killer);
 
+	UFUNCTION(Blueprintable, NetMulticast, Reliable)
+	void Ragdoll();
+
 	UFUNCTION()
 	void onMeshVisibilityChanged()
 	{

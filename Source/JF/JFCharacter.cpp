@@ -20,6 +20,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "InputMappingContext.h"
+#include "JFGameMode.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Game/JFGameInstance.h"
 #include "Game/JFGameState.h"
@@ -1179,6 +1180,19 @@ void AJFCharacter::OnDeath(AJFCharacter* Killer)
 		*GetName())
 
 	//Kill User
+	AJFGameMode* GM = GetWorld()->GetAuthGameMode<AJFGameMode>();
+	if(GM) GM->PlayerKilled(Killer, this);
+
+	//Do Ragdoll
+	AbilitySystemComponent->AddLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+	AbilitySystemComponent->AddReplicatedLooseGameplayTag(UJFGameInstance::DoingSomethingTag);
+	
+	Ragdoll();
+}
+
+void AJFCharacter::Ragdoll_Implementation()
+{
+	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 //Camera Lock on / Delock

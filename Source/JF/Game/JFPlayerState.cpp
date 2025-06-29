@@ -11,7 +11,12 @@ void AJFPlayerState::CopyProperties(APlayerState* PlayerState)
 	{
 		PS->SetUsername(Username);
 		PS->SetHero(Hero);
+
+		PS->setKD(Kills, Deaths);
+		
+		UE_LOG(LogTemp, Log, TEXT("JFPS Properties Copied"));
 	}
+	else UE_LOG(LogTemp, Warning, TEXT("JFPS Properties Failed to Copy"));
 	
 	Super::CopyProperties(PlayerState);
 }
@@ -20,5 +25,7 @@ void AJFPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	DOREPLIFETIME(AJFPlayerState, Username);
 	DOREPLIFETIME(AJFPlayerState, Hero);
+	DOREPLIFETIME(AJFPlayerState, Kills);
+	DOREPLIFETIME(AJFPlayerState, Deaths);
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }

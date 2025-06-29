@@ -15,7 +15,7 @@ void UBlueprintTravel::SeamlessTravel(const UObject* WorldContextObject, const T
 	
 	if(World->IsNetMode(NM_DedicatedServer) || World->IsNetMode(NM_ListenServer))
 	{
-		World->ServerTravel(LevelName,false,false);
+		World->ServerTravel(LevelName + "?listen",true,false);
 	}
 }
 
