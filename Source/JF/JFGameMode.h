@@ -12,6 +12,8 @@ class AJFGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+	int PlayerSpawnCount = 0;
+
 public:
 	AJFGameMode();
 

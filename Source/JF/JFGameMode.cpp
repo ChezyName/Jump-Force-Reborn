@@ -43,7 +43,8 @@ void AJFGameMode::PostLogin(APlayerController* NewPlayer)
 		UClass* HeroClass = PS->GetHero()->Actor.LoadSynchronous();
 		
 		if(HeroClass) {
-			AActor* StartSpot = FindPlayerStart(PC);
+			PlayerSpawnCount++;
+			AActor* StartSpot = FindPlayerStart(PC, FString::FromInt(PlayerSpawnCount));
 			FTransform SpawnTransform = StartSpot->GetActorTransform();
 
 			FActorSpawnParameters Params;

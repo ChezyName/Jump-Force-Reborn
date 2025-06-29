@@ -600,8 +600,8 @@ void AJFCharacter::BeginPlay()
 
 		SetNumericAttribute(UJFAttributeSet::GetDashChargeAttribute(), MAX_DASH_CHARGE);
 
-		//DEBUG ONLY
-		SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), MAX_METER);
+		//DEBUG ONLY -- START WITH ZERO METER ON INIT
+		SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(), 0.f);
 
 		GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 	}
