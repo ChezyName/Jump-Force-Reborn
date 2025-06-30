@@ -50,16 +50,16 @@ static const FVector LOCK_ON_MAX_CAMERA_SOCKET_OFFSET = FVector(0, 75, 50);
 static const FVector DEFAULT_CAMERA_SOCKET_OFFSET = FVector(0, 0, 75);
 
 //Parry
-constexpr float PARRY_PRE_LAG = 0.05f;
-constexpr float PARRY_WINDOW = 0.35f;
-constexpr float PARRY_POST_LAG = 0.1f;
+constexpr float PARRY_PRE_LAG = 0.1f;
+constexpr float PARRY_WINDOW = 0.75f;
+constexpr float PARRY_POST_LAG = 0.25f;
 
 //Stuns
-constexpr float PARRY_STUN_TIME_PER_HIT = 0.012f;
-constexpr float PARRY_STUN_TIME_MIN = 0.8f;
-constexpr float PARRY_STUN_TIME_MAX = 2.5f;
+constexpr float PARRY_STUN_TIME_PER_HIT = 0.15f;
+constexpr float PARRY_STUN_TIME_MIN = 2.5f;
+constexpr float PARRY_STUN_TIME_MAX = 5.f;
 
-constexpr float HIT_STUN_TIME_PER_HIT = 0.015f;
+constexpr float HIT_STUN_TIME_PER_HIT = 0.006f;
 constexpr float HIT_STUN_TIME_MIN = 0.1f;
 constexpr float HIT_STUN_TIME_MAX = 1.5f;
 
