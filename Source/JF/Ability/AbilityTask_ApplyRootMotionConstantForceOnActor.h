@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotion_Base.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "AbilityTask_ApplyRootMotionConstantForceOnActor.generated.h"
 
 class UCharacterMovementComponent;
 class UCurveFloat;
 class UGameplayTasksComponent;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FApplyRootMotionConstantForceDelegate);
 
 class AActor;
 
