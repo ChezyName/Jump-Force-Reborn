@@ -20,7 +20,7 @@ bool UMeteredGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
 	
 	if(AJFCharacter* Char = Cast<AJFCharacter>(ActorInfo->OwnerActor))
 	{
-		return Char->GetMeter() >= (AbilityCost * 100.f);
+		return Char->GetMeter() >= GetAbilityCost();
 	}
 	
 	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
@@ -43,7 +43,7 @@ bool UMeteredGameplayAbility::CommitAbility(const FGameplayAbilitySpecHandle Han
 		if(!TakesCostOnUse) return true;
 		
 		float MeterFull = Character->GetMeter();
-		MeterFull -= AbilityCost * 100.f;
+		MeterFull -= GetAbilityCost();
 		
 		Character->SetNumericAttribute(UJFAttributeSet::GetMeterAttribute(),
 			MeterFull);

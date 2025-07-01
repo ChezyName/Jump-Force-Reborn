@@ -26,7 +26,7 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 
 	UPROPERTY()
 	AJFCharacter* Character;
-
+	
 	virtual void onTick() override
 	{
 		onTickSelf();
@@ -50,6 +50,19 @@ class JF_API UMeteredGameplayAbility : public UGameplayAbility_JFAttack
 	UHitboxTask* TickTask;
 public:
 	UMeteredGameplayAbility();
+
+	/**
+	 * Gets The Ability Cost
+	 * @return the Ability cost as a float
+	 * @default AbilityCost * 100.f
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	float GetAbilityCost() const;
+
+	virtual float GetAbilityCost_Implementation() const
+	{
+		return AbilityCost * 100.f;
+	}
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin=0, ClampMax=6), Category="Ability")
 	bool isToggledAbility = false;
