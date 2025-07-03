@@ -90,6 +90,14 @@ public:
 	bool TryActivateOrQueueAbilityByClass(TSubclassOf<UGameplayAbility> InAbilityToActivate, bool bAllowRemoteActivation = true);
 	
 	FQueuedAbility& GetNextAbility() {return NextAbility;}
+	void TickAbility(float DeltaSeconds)
+	{
+		NextAbility.Lifetime = NextAbility.Lifetime - DeltaSeconds;
+	}
+	void EndAbility()
+	{
+		NextAbility.Lifetime = -1;
+	}
 	
 protected:
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;

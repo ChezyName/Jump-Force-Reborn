@@ -288,6 +288,8 @@ void UJFASComponent::TryBindAbilityInput(UInputAction* InputAction, FAbilityInpu
 UJFASComponent::UJFASComponent() : Super()
 {
 	SetIsReplicated(true);
+
+	bAutoActivate = true;
 }
 
 void UJFASComponent::BeginPlay() {
@@ -307,19 +309,6 @@ void UJFASComponent::BeginPlay() {
 void UJFASComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if(NextAbility.Type == Ability && NextAbility.Handle.IsValid() && NextAbility.Lifetime > 0)
-	{
-		NextAbility.Lifetime -= DeltaTime;
-		
-		//Try Ability
-		if(TryActivateAbility(NextAbility.Handle, NextAbility.bWasRemote))
-		{
-			NextAbility.Lifetime = -1;
-			UKismetSystemLibrary::PrintString(GetWorld(),"Ability Was Activated from GAS Buffer of Type: " +
-			FString(NextAbility.Type == Ability ? "Ability" : NextAbility.Type == Light ? "Light" : "Heavy"));
-		}
-	}
 }
 
 bool UJFASComponent::TryActivateOrQueueAbility(FGameplayAbilitySpecHandle Handle, bool bAllowRemoteActivation)

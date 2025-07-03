@@ -935,6 +935,7 @@ void AJFCharacter::LightAttack(bool Queue)
 		);
 		
 		LastAttack = "Light";
+		AbilitySystemComponent->EndAbility();
 	}
 }
 
@@ -980,6 +981,7 @@ void AJFCharacter::HeavyAttack(bool Queue)
 		);
 		
 		LastAttack = "Heavy";
+		AbilitySystemComponent->EndAbility();
 	}
 }
 
@@ -989,13 +991,20 @@ void AJFCharacter::TickQueuedAttack(float DeltaSeconds)
 	//Only Tick if Attack Light/Heavy
 	if(AbilitySystemComponent == nullptr) return;
 	FQueuedAbility& Attack = AbilitySystemComponent->GetNextAbility();
-	if(Attack.Type == Ability || Attack.Lifetime <= 0) return;
-
+	if(Attack.Lifetime <= 0) return;
+	
 	//Tick Attack
-	Attack.Lifetime -= DeltaSeconds;
+	AbilitySystemComponent->TickAbility(DeltaSeconds);
 	
 	if(Attack.Type == Light) LightAttack(false);
 	if(Attack.Type == Heavy) HeavyAttack(false);
+	if(Attack.Type == Ability)
+	{
+		if(AbilitySystemComponent->TryActivateAbility(Attack.Handle, Attack.bWasRemote))
+		{
+			AbilitySystemComponent->EndAbility();
+		}
+	}
 }
 
 void AJFCharacter::HealPlayer_Implementation(float HealAmount)
