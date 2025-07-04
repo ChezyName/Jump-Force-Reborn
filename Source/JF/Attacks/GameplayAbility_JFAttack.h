@@ -60,7 +60,7 @@ public:
 	AActor* HitboxOwner = nullptr;
 
 	UFUNCTION(BlueprintPure)
-	FTransform GetWorldTransform()
+	const FTransform GetWorldTransform()
 	{
 		FVector _Position = Location;
 		FRotator _Rotation = Rotation;
@@ -83,6 +83,18 @@ public:
 
 		return FTransform(_Rotation, _Position, _Size);
 	}
+
+	const FCollisionShape GetHitboxShape()
+	{
+		switch(HitboxType)
+		{
+		case Capsule:
+			return FCollisionShape::MakeCapsule(Size.X, Size.Y);
+		case Box:
+		default:
+			return FCollisionShape::MakeBox(Size);
+		}
+	}
 };
 
 UCLASS()
@@ -92,7 +104,6 @@ class JF_API UGameplayAbility_JFAttack : public UGameplayAbility
 	
 public:
 	UGameplayAbility_JFAttack();
-	virtual void PostInitProperties() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
 	float Damage = 150.f;

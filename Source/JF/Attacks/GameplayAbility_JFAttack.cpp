@@ -31,22 +31,6 @@ UGameplayAbility_JFAttack::UGameplayAbility_JFAttack() : Super()
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed")));
 }
 
-void UGameplayAbility_JFAttack::PostInitProperties()
-{
-	/*
-	if (HasAnyFlags(RF_ClassDefaultObject))
-	{
-		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.DoingSomething")));
-		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.HitStun")));
-		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.TimeStopped")));
-		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("GameplayCue.ParryStun")));
-		ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Character.Status.Grabbed")));
-	}
-	*/
-	
-	Super::PostInitProperties();
-}
-
 void UGameplayAbility_JFAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                 const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                 const FGameplayEventData* TriggerEventData)
@@ -165,18 +149,8 @@ void UGameplayAbility_JFAttack::GetHitboxOverlap(UHitbox* Hitbox, TArray<AActor*
 		Rotation = BaseTransform.TransformRotation(Hitbox->Rotation.Quaternion()).Rotator();
 	}
 	
-	if (Hitbox->HitboxType == Box)
-	{
-		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
-			ECC_Pawn, FCollisionShape::MakeBox(Size),
-			QueryParams);
-	}
-	else if(Hitbox->HitboxType == Capsule)
-	{
-		GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
-	ECC_Pawn, FCollisionShape::MakeCapsule(Size.X, Size.Y),
-			QueryParams);
-	}
+	GetWorld()->OverlapMultiByChannel(OverlapResults, Position, Rotation.Quaternion(),
+	ECC_Pawn, Hitbox->GetHitboxShape(), QueryParams);
 
 	//Filter Hits
 	for(FOverlapResult Overlap : OverlapResults)
