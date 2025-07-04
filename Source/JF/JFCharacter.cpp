@@ -1150,18 +1150,18 @@ void AJFCharacter::TakeDamageFXs_Implementation(float Damage)
 {
 	if(!BloodFX) return;
 	
-	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		GetWorld(),
+	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
 		BloodFX,
-		GetActorLocation(),
-		GetActorRotation(),
-		FVector(1.0f),    // Scale
+		GetMesh(),
+		FName("upper_torso"),
+		FVector::ZeroVector,    // Scale
+		FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget,
 		true,             // bAutoDestroy
 		true,             // bAutoActivate
 		ENCPoolMethod::None,
 		true              // bPreCullCheck
 	);
-
 	if (NiagaraComp)
 	{
 		NiagaraComp->SetVariableInt(TEXT("Damage"), Damage);
