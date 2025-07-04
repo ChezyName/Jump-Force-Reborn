@@ -504,7 +504,7 @@ public:
 	FOnLockedCharChanged LockedOnEvent;
 
 protected:
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, Interp)
 	bool isTryingMeterCharge = false;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Character")
