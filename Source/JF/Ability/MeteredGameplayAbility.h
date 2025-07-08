@@ -83,10 +83,10 @@ public:
 	float MeterPerSecond = 0.f;
 
 	//If Not Toggled Ability
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
 	bool ForceEndOnMeterZero = true;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Ability")
 	bool EndAbilityOnKeyRelease = false;
 
 	UFUNCTION(BlueprintPure)
